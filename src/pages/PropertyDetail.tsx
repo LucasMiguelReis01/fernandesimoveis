@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MapPin, Calendar, Building, Bed, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Calendar, Building, Bed, ChevronLeft, ChevronRight, Phone } from 'lucide-react';
 import { PropertyType } from '@/components/PropertyCard';
 
 // Sample property data
