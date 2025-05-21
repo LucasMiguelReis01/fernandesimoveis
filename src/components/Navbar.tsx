@@ -42,9 +42,11 @@ const Navbar = () => {
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between py-4">
           <Link to="/" className="flex items-center">
-            <div className="h-14 w-14 rounded-full border border-gold/50 flex items-center justify-center">
-              <span className="text-gold text-xl font-bold">F</span>
-            </div>
+            <img 
+              src="/lovable-uploads/26864e40-d0ce-47e4-a4ac-391dc0e36082.png" 
+              alt="Fernandes Imóveis" 
+              className="h-14 w-14"
+            />
             <div className="ml-3">
               <p className="text-white font-bold text-lg">FERNANDES</p>
               <p className="text-gold text-sm">IMÓVEIS</p>
