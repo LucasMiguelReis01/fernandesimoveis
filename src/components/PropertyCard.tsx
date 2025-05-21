@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { Building, Bed, MapPin } from 'lucide-react';
 
@@ -12,6 +11,7 @@ export interface PropertyType {
   area: number;
   imageUrl: string;
   featured?: boolean;
+  sold?: boolean;
 }
 
 interface PropertyCardProps {
