@@ -1,3 +1,4 @@
+
 import { Link } from 'react-router-dom';
 import { Instagram } from 'lucide-react';
 
@@ -10,11 +11,13 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div>
             <div className="flex items-center mb-4">
-              <img 
-                src="/lovable-uploads/26864e40-d0ce-47e4-a4ac-391dc0e36082.png" 
-                alt="Fernandes Imóveis" 
-                className="h-12 w-12"
-              />
+              <div className="h-12 w-12 rounded-full overflow-hidden bg-dark-lighter flex items-center justify-center border border-gold/30">
+                <img 
+                  src="/lovable-uploads/26864e40-d0ce-47e4-a4ac-391dc0e36082.png" 
+                  alt="Fernandes Imóveis" 
+                  className="h-10 w-10 object-contain"
+                />
+              </div>
               <div className="ml-3">
                 <p className="text-white font-bold">FERNANDES</p>
                 <p className="text-gold text-xs">IMÓVEIS</p>

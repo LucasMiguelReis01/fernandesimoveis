@@ -71,6 +71,22 @@ const allProperties: PropertyType[] = [
   }
 ];
 
+// Map price range values to actual price ranges
+const priceRangeMap: Record<string, [number, number]> = {
+  'ate500': [0, 500000],
+  '500a1m': [500000, 1000000],
+  '1ma2m': [1000000, 2000000],
+  'acima2m': [2000000, Infinity]
+};
+
+// Price format helper
+const formatPrice = (price: string): number => {
+  if (price.includes('/mês')) {
+    return parseInt(price.replace(/\D+/g, ''));
+  }
+  return parseInt(price.replace(/\D+/g, ''));
+};
+
 const Properties = () => {
   const location = useLocation();
   const [properties, setProperties] = useState<PropertyType[]>([]);
@@ -81,6 +97,7 @@ const Properties = () => {
     city: ''
   });
   const [isLoaded, setIsLoaded] = useState(false);
+  const [sortBy, setSortBy] = useState('recent');
 
   useEffect(() => {
     // Apply any filters that might have been passed in location state
@@ -102,12 +119,38 @@ const Properties = () => {
 
   // Filter properties based on user selection
   const filteredProperties = properties.filter(property => {
-    // In a real application, you would implement proper filtering logic here
+    // Filter by transaction type
     if (filters.transactionType !== 'todos') {
       if (filters.transactionType === 'comprar' && property.type !== 'Venda') return false;
       if (filters.transactionType === 'alugar' && property.type !== 'Aluguel') return false;
     }
     
+    // Filter by property type
+    if (filters.propertyType !== 'todos') {
+      const propertyTypeMap: Record<string, string[]> = {
+        'casa': ['Casa', 'Casa de Luxo', 'Mansão'],
+        'apartamento': ['Apartamento', 'Penthouse', 'Apartamento de Alto Padrão'],
+        'terreno': ['Terreno'],
+        'chacara': ['Chácara'],
+      };
+      
+      const validTypes = propertyTypeMap[filters.propertyType] || [];
+      if (!validTypes.some(type => property.title.toLowerCase().includes(type.toLowerCase()))) {
+        return false;
+      }
+    }
+    
+    // Filter by price range
+    if (filters.priceRange !== 'todos') {
+      const priceValue = formatPrice(property.price);
+      const [minPrice, maxPrice] = priceRangeMap[filters.priceRange] || [0, Infinity];
+      
+      if (priceValue < minPrice || priceValue > maxPrice) {
+        return false;
+      }
+    }
+    
+    // Filter by city
     if (filters.city && !property.location.toLowerCase().includes(filters.city.toLowerCase())) {
       return false;
     }
@@ -115,11 +158,26 @@ const Properties = () => {
     return true;
   });
 
+  // Sort properties based on selection
+  const sortedProperties = [...filteredProperties].sort((a, b) => {
+    if (sortBy === 'lowPrice') {
+      return formatPrice(a.price) - formatPrice(b.price);
+    } else if (sortBy === 'highPrice') {
+      return formatPrice(b.price) - formatPrice(a.price);
+    }
+    // Default to recent (no sorting required as we assume they're already sorted by recency)
+    return 0;
+  });
+
   const handleFilterChange = (filterName: string, value: string) => {
     setFilters({
       ...filters,
       [filterName]: value
     });
+  };
+
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortBy(e.target.value);
   };
 
   return (
@@ -203,21 +261,25 @@ const Properties = () => {
         <div className="container mx-auto px-4 md:px-6">
           <div className="mb-8 flex justify-between items-center">
             <h2 className="text-white text-xl">
-              {filteredProperties.length} {filteredProperties.length === 1 ? 'imóvel encontrado' : 'imóveis encontrados'}
+              {sortedProperties.length} {sortedProperties.length === 1 ? 'imóvel encontrado' : 'imóveis encontrados'}
             </h2>
             <div className="relative border border-gold/30 rounded-lg">
-              <select className="p-2 bg-dark text-white appearance-none pr-8 focus:outline-none">
-                <option>Mais Recentes</option>
-                <option>Menor Preço</option>
-                <option>Maior Preço</option>
+              <select 
+                className="p-2 bg-dark text-white appearance-none pr-8 focus:outline-none"
+                value={sortBy}
+                onChange={handleSortChange}
+              >
+                <option value="recent">Mais Recentes</option>
+                <option value="lowPrice">Menor Preço</option>
+                <option value="highPrice">Maior Preço</option>
               </select>
               <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gold h-4 w-4 pointer-events-none" />
             </div>
           </div>
           
-          {filteredProperties.length > 0 ? (
+          {sortedProperties.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProperties.map((property) => (
+              {sortedProperties.map((property) => (
                 <PropertyCard key={property.id} property={property} />
               ))}
             </div>
