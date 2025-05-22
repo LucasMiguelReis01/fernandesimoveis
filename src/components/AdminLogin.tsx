@@ -32,12 +32,32 @@ const AdminLogin = () => {
       }
       
       if (data.user) {
-        // Verificar se o usuário é administrador
-        const { data: profile } = await supabase
+        // Verificar se o perfil do usuário existe
+        let { data: profile } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', data.user.id)
           .single();
+          
+        // Se o perfil não existir, criar um perfil de admin
+        if (!profile) {
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({ 
+              id: data.user.id, 
+              role: 'admin' 
+            });
+            
+          if (insertError) {
+            console.error('Erro ao criar perfil:', insertError);
+            await supabase.auth.signOut();
+            toast.error('Erro ao configurar seu perfil. Por favor, tente novamente.');
+            return;
+          }
+          
+          // Definir o perfil local após a criação
+          profile = { role: 'admin' };
+        }
           
         if (profile && profile.role === 'admin') {
           toast.success('Login realizado com sucesso');
