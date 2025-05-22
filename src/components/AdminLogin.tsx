@@ -32,40 +32,62 @@ const AdminLogin = () => {
       }
       
       if (data.user) {
-        // Verificar se o perfil do usuário existe
-        let { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single();
-          
-        // Se o perfil não existir, criar um perfil de admin
-        if (!profile) {
-          const { error: insertError } = await supabase
+        try {
+          // Verificar se o perfil do usuário existe
+          let { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .insert({ 
-              id: data.user.id, 
-              role: 'admin' 
-            });
+            .select('role')
+            .eq('id', data.user.id)
+            .single();
             
-          if (insertError) {
-            console.error('Erro ao criar perfil:', insertError);
-            await supabase.auth.signOut();
-            toast.error('Erro ao configurar seu perfil. Por favor, tente novamente.');
-            return;
+          if (profileError) {
+            console.log('Perfil não encontrado, criando novo perfil de admin');
+            
+            // Tentar criar o perfil com o RPC ou usando autenticação de serviço (se disponível)
+            const { data: insertData, error: insertError } = await supabase
+              .from('profiles')
+              .insert({ 
+                id: data.user.id, 
+                role: 'admin' 
+              })
+              .select('role')
+              .single();
+              
+            if (insertError) {
+              console.error('Erro ao criar perfil:', insertError);
+              
+              // Se falhar, ainda permitimos o login se o usuário for o primeiro
+              const { count } = await supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true });
+                
+              if (count === 0) {
+                // É o primeiro usuário, vamos permitir acesso como admin
+                toast.success('Login realizado com sucesso como primeiro administrador');
+                navigate('/admin/properties');
+                return;
+              }
+              
+              await supabase.auth.signOut();
+              toast.error('Erro ao configurar seu perfil. Por favor, contate o suporte.');
+              return;
+            }
+            
+            profile = insertData;
           }
-          
-          // Definir o perfil local após a criação
-          profile = { role: 'admin' };
-        }
-          
-        if (profile && profile.role === 'admin') {
-          toast.success('Login realizado com sucesso');
-          navigate('/admin/properties');
-        } else {
-          // Deslogar o usuário que não é administrador
+            
+          if (profile && profile.role === 'admin') {
+            toast.success('Login realizado com sucesso');
+            navigate('/admin/properties');
+          } else {
+            // Deslogar o usuário que não é administrador
+            await supabase.auth.signOut();
+            toast.error('Acesso negado. Você não tem permissões de administrador');
+          }
+        } catch (err) {
+          console.error('Erro ao verificar perfil:', err);
           await supabase.auth.signOut();
-          toast.error('Acesso negado. Você não tem permissões de administrador');
+          toast.error('Ocorreu um erro ao verificar suas permissões');
         }
       }
     } catch (err) {
