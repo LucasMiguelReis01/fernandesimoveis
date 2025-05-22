@@ -1,75 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Edit, Trash2, Plus, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { PropertyType } from '@/components/PropertyCard';
-
-// Sample properties data (same as in Properties.tsx)
-const initialProperties: PropertyType[] = [
-  {
-    id: '1',
-    title: 'Casa de Luxo em Alphaville',
-    type: 'Venda',
-    price: 'R$ 2.400.000',
-    location: 'Alphaville, São Paulo',
-    bedrooms: 4,
-    area: 350,
-    imageUrl: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625',
-    featured: true
-  },
-  {
-    id: '2',
-    title: 'Mansão Contemporânea',
-    type: 'Venda',
-    price: 'R$ 4.900.000',
-    location: 'Barra da Tijuca, Rio de Janeiro',
-    bedrooms: 5,
-    area: 480,
-    imageUrl: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742',
-    featured: true
-  },
-  {
-    id: '3',
-    title: 'Penthouse com Vista para o Mar',
-    type: 'Venda',
-    price: 'R$ 3.200.000',
-    location: 'Balneário Camboriú, SC',
-    bedrooms: 3,
-    area: 220,
-    imageUrl: 'https://images.unsplash.com/photo-1483058712412-4245e9b90334',
-    featured: true
-  },
-  {
-    id: '4',
-    title: 'Apartamento de Alto Padrão',
-    type: 'Aluguel',
-    price: 'R$ 12.000/mês',
-    location: 'Jardins, São Paulo',
-    bedrooms: 2,
-    area: 150,
-    imageUrl: 'https://images.unsplash.com/photo-1527576539890-dfa815648363'
-  },
-  {
-    id: '5',
-    title: 'Casa com Piscina em Condomínio',
-    type: 'Venda',
-    price: 'R$ 1.800.000',
-    location: 'Ribeirão Preto, SP',
-    bedrooms: 4,
-    area: 280,
-    imageUrl: 'https://images.unsplash.com/photo-1488972685288-c3fd157d7c7a'
-  },
-  {
-    id: '6',
-    title: 'Terreno em Área Nobre',
-    type: 'Venda',
-    price: 'R$ 900.000',
-    location: 'Campinas, SP',
-    bedrooms: 0,
-    area: 500,
-    imageUrl: 'https://images.unsplash.com/photo-1426604966848-d7adac402bff'
-  }
-];
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminProperties = () => {
   const [properties, setProperties] = useState<PropertyType[]>([]);
@@ -78,46 +13,118 @@ const AdminProperties = () => {
   
   useEffect(() => {
     // Check if admin is authenticated
-    const isAuthenticated = localStorage.getItem('adminAuthenticated') === 'true';
-    if (!isAuthenticated) {
-      navigate('/admin');
-      return;
-    }
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        navigate('/admin');
+        return;
+      }
+      
+      // Check if user is an admin
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+      
+      if (!profile || profile.role !== 'admin') {
+        navigate('/admin');
+        toast.error('Acesso negado. Você não tem permissões de administrador.');
+        return;
+      }
+      
+      fetchProperties();
+    };
     
-    // In a real app, fetch properties from API
-    // For demo purposes, we'll use localStorage to persist changes
-    const savedProperties = localStorage.getItem('properties');
-    if (savedProperties) {
-      setProperties(JSON.parse(savedProperties));
-    } else {
-      setProperties(initialProperties);
-      localStorage.setItem('properties', JSON.stringify(initialProperties));
-    }
-    
-    setIsLoading(false);
+    checkAuth();
   }, [navigate]);
   
-  const handleLogout = () => {
-    localStorage.removeItem('adminAuthenticated');
+  const fetchProperties = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        console.error('Erro ao buscar imóveis:', error);
+        toast.error('Erro ao carregar imóveis');
+      } else {
+        // Formatar os dados para o formato esperado
+        const formattedData = data.map(item => ({
+          id: item.id,
+          title: item.title,
+          type: item.transaction_type,
+          price: item.price,
+          location: item.location,
+          bedrooms: item.bedrooms,
+          area: item.area,
+          imageUrl: item.image_url,
+          featured: item.featured,
+          sold: item.sold
+        }));
+        setProperties(formattedData);
+      }
+    } catch (err) {
+      console.error('Erro inesperado:', err);
+      toast.error('Ocorreu um erro inesperado');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     navigate('/admin');
   };
   
-  const handlePropertySold = (id: string) => {
-    const updatedProperties = properties.map(property => 
-      property.id === id ? { ...property, sold: true } : property
-    );
-    
-    setProperties(updatedProperties);
-    localStorage.setItem('properties', JSON.stringify(updatedProperties));
-    toast.success('Imóvel marcado como vendido!');
+  const handlePropertySold = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('properties')
+        .update({ sold: true })
+        .eq('id', id);
+        
+      if (error) {
+        console.error('Erro ao marcar imóvel como vendido:', error);
+        toast.error('Não foi possível marcar o imóvel como vendido');
+      } else {
+        // Atualizar a lista localmente
+        const updatedProperties = properties.map(property => 
+          property.id === id ? { ...property, sold: true } : property
+        );
+        
+        setProperties(updatedProperties);
+        toast.success('Imóvel marcado como vendido!');
+      }
+    } catch (err) {
+      console.error('Erro inesperado:', err);
+      toast.error('Ocorreu um erro inesperado');
+    }
   };
   
-  const handleDeleteProperty = (id: string) => {
+  const handleDeleteProperty = async (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir este imóvel?')) {
-      const updatedProperties = properties.filter(property => property.id !== id);
-      setProperties(updatedProperties);
-      localStorage.setItem('properties', JSON.stringify(updatedProperties));
-      toast.success('Imóvel excluído com sucesso!');
+      try {
+        const { error } = await supabase
+          .from('properties')
+          .delete()
+          .eq('id', id);
+          
+        if (error) {
+          console.error('Erro ao excluir imóvel:', error);
+          toast.error('Não foi possível excluir o imóvel');
+        } else {
+          // Remover o imóvel da lista localmente
+          const updatedProperties = properties.filter(property => property.id !== id);
+          setProperties(updatedProperties);
+          toast.success('Imóvel excluído com sucesso!');
+        }
+      } catch (err) {
+        console.error('Erro inesperado:', err);
+        toast.error('Ocorreu um erro inesperado');
+      }
     }
   };
   
@@ -132,7 +139,7 @@ const AdminProperties = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-dark flex items-center justify-center">
-        <p className="text-white">Carregando...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold"></div>
       </div>
     );
   }
@@ -178,10 +185,15 @@ const AdminProperties = () => {
                 <tbody>
                   {properties.map((property) => (
                     <tr key={property.id} className="border-b border-gold/10 hover:bg-dark-lighter">
-                      <td className="px-4 py-3 text-sm text-gray-300">{property.id}</td>
+                      <td className="px-4 py-3 text-sm text-gray-300">{property.id.substring(0, 8)}...</td>
                       <td className="px-4 py-3 text-sm text-white">{property.title}</td>
                       <td className="px-4 py-3 text-sm text-gray-300">{property.type}</td>
-                      <td className="px-4 py-3 text-sm text-gray-300">{property.price}</td>
+                      <td className="px-4 py-3 text-sm text-gray-300">
+                        {typeof property.price === 'number' 
+                          ? `R$ ${property.price.toLocaleString('pt-BR')}` 
+                          : property.price
+                        }
+                      </td>
                       <td className="px-4 py-3 text-sm text-gray-300">{property.location}</td>
                       <td className="px-4 py-3 text-sm">
                         {property.sold ? (

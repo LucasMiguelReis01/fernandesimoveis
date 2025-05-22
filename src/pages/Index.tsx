@@ -1,49 +1,58 @@
 
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import HeroBanner from '@/components/HeroBanner';
 import PropertyCard, { PropertyType } from '@/components/PropertyCard';
-
-const featuredProperties: PropertyType[] = [
-  {
-    id: '1',
-    title: 'Casa de Luxo em Alphaville',
-    type: 'Venda',
-    price: 'R$ 2.400.000',
-    location: 'Alphaville, São Paulo',
-    bedrooms: 4,
-    area: 350,
-    imageUrl: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625',
-    featured: true
-  },
-  {
-    id: '2',
-    title: 'Mansão Contemporânea',
-    type: 'Venda',
-    price: 'R$ 4.900.000',
-    location: 'Barra da Tijuca, Rio de Janeiro',
-    bedrooms: 5,
-    area: 480,
-    imageUrl: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742',
-    featured: true
-  },
-  {
-    id: '3',
-    title: 'Penthouse com Vista para o Mar',
-    type: 'Venda',
-    price: 'R$ 3.200.000',
-    location: 'Balneário Camboriú, SC',
-    bedrooms: 3,
-    area: 220,
-    imageUrl: 'https://images.unsplash.com/photo-1483058712412-4245e9b90334',
-    featured: true
-  }
-];
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [featuredProperties, setFeaturedProperties] = useState<PropertyType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setIsLoaded(true);
+    const fetchFeaturedProperties = async () => {
+      try {
+        // Buscar imóveis destacados do Supabase
+        const { data, error } = await supabase
+          .from('properties')
+          .select('*')
+          .eq('featured', true)
+          .limit(3);
+        
+        if (error) {
+          console.error('Erro ao buscar imóveis destacados:', error);
+          setError('Não foi possível carregar os imóveis destacados.');
+        } else {
+          // Formatar os dados para o formato esperado pelo PropertyCard
+          const formattedData = data.map(item => ({
+            id: item.id,
+            title: item.title,
+            type: item.transaction_type,
+            transaction_type: item.transaction_type,
+            price: item.price,
+            location: item.location,
+            bedrooms: item.bedrooms,
+            area: item.area,
+            imageUrl: item.image_url,
+            image_url: item.image_url,
+            featured: item.featured,
+            sold: item.sold,
+            property_type: item.property_type
+          }));
+          setFeaturedProperties(formattedData);
+        }
+      } catch (err) {
+        console.error('Erro inesperado:', err);
+        setError('Ocorreu um erro inesperado.');
+      } finally {
+        setIsLoading(false);
+        setIsLoaded(true);
+      }
+    };
+
+    fetchFeaturedProperties();
   }, []);
 
   return (
@@ -59,19 +68,42 @@ const Index = () => {
             <div className="w-24 h-1 bg-gold/40 mx-auto"></div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProperties.map((property) => (
-              <PropertyCard key={property.id} property={property} />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold"></div>
+            </div>
+          ) : error ? (
+            <div className="text-center py-16">
+              <p className="text-red-500 mb-4">{error}</p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="gold-button px-6 py-2 rounded-md"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          ) : featuredProperties.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredProperties.map((property) => (
+                <PropertyCard key={property.id} property={property} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <p className="text-white mb-4">Nenhum imóvel destacado encontrado.</p>
+              <Link to="/properties" className="gold-button px-8 py-3 rounded-md">
+                Ver Todos os Imóveis
+              </Link>
+            </div>
+          )}
           
           <div className="mt-12 text-center">
-            <a 
-              href="/properties" 
+            <Link 
+              to="/properties" 
               className="gold-button inline-block px-8 py-3 rounded-md"
             >
               Ver Todos os Imóveis
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -83,8 +115,8 @@ const Index = () => {
               POR QUE ESCOLHER A <span className="text-gold">FERNANDES IMÓVEIS</span>?
             </h2>
             <p className="text-gray-300 mb-12">
-              Somos especialistas em imóveis de alto padrão, com foco em proporcionar 
-              uma experiência de compra ou locação excepcional para nossos clientes.
+              Somos especialistas em imóveis de todas as categorias, desde imóveis populares até alto padrão,
+              com foco em proporcionar uma experiência de compra ou locação excepcional para nossos clientes.
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -92,9 +124,9 @@ const Index = () => {
                 <div className="h-14 w-14 border border-gold/40 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-gold text-2xl">01</span>
                 </div>
-                <h3 className="text-white text-lg mb-2">Exclusividade</h3>
+                <h3 className="text-white text-lg mb-2">Diversidade</h3>
                 <p className="text-gray-400">
-                  Trabalhamos com imóveis exclusivos e de alto padrão, cuidadosamente selecionados.
+                  Trabalhamos com imóveis de todos os padrões, desde populares até alto luxo, cuidadosamente selecionados.
                 </p>
               </div>
               
@@ -104,7 +136,7 @@ const Index = () => {
                 </div>
                 <h3 className="text-white text-lg mb-2">Atendimento</h3>
                 <p className="text-gray-400">
-                  Oferecemos um serviço personalizado e dedicado a cada cliente.
+                  Oferecemos um serviço personalizado e dedicado a cada cliente, independente do valor do imóvel.
                 </p>
               </div>
               
@@ -114,7 +146,7 @@ const Index = () => {
                 </div>
                 <h3 className="text-white text-lg mb-2">Conhecimento</h3>
                 <p className="text-gray-400">
-                  Nossa equipe possui amplo conhecimento do mercado imobiliário local.
+                  Nossa equipe possui amplo conhecimento do mercado imobiliário local e financiamentos.
                 </p>
               </div>
             </div>
@@ -139,18 +171,18 @@ const Index = () => {
               Entre em contato conosco para um atendimento personalizado.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <a 
-                href="/properties" 
+              <Link 
+                to="/properties" 
                 className="gold-button px-8 py-3 rounded-md"
               >
                 Ver Imóveis
-              </a>
-              <a 
-                href="/contact" 
+              </Link>
+              <Link 
+                to="/contact" 
                 className="border border-gold text-gold px-8 py-3 rounded-md hover:bg-gold/10 transition-colors"
               >
                 Fale Conosco
-              </a>
+              </Link>
             </div>
           </div>
         </div>

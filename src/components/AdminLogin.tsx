@@ -1,82 +1,112 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminLogin = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simple authentication for demo purposes
-    // In a real app, this would be a secure API request
-    if (username === 'admin' && password === 'admin123') {
-      // Save authentication state
-      localStorage.setItem('adminAuthenticated', 'true');
-      toast.success('Login bem sucedido!');
-      navigate('/admin/properties');
-    } else {
-      toast.error('Credenciais inválidas. Tente novamente.');
+    if (!email || !password) {
+      toast.error('Por favor, preencha todos os campos');
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
+        toast.error(error.message || 'Erro ao fazer login');
+        return;
+      }
+      
+      if (data.user) {
+        // Verificar se o usuário é administrador
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+          
+        if (profile && profile.role === 'admin') {
+          toast.success('Login realizado com sucesso');
+          navigate('/admin/properties');
+        } else {
+          // Deslogar o usuário que não é administrador
+          await supabase.auth.signOut();
+          toast.error('Acesso negado. Você não tem permissões de administrador');
+        }
+      }
+    } catch (err) {
+      console.error('Erro inesperado:', err);
+      toast.error('Ocorreu um erro inesperado');
+    } finally {
+      setIsLoading(false);
     }
   };
-  
+
   return (
-    <div className="min-h-screen bg-dark pt-32 pb-16 px-4">
-      <div className="max-w-md mx-auto">
-        <div className="glass-dark rounded-lg p-8">
-          <div className="flex items-center justify-center mb-6">
-            <div className="h-16 w-16 rounded-full overflow-hidden bg-dark-lighter flex items-center justify-center border border-gold/30">
-              <img 
-                src="/lovable-uploads/26864e40-d0ce-47e4-a4ac-391dc0e36082.png" 
-                alt="Fernandes Imóveis" 
-                className="h-14 w-14 object-contain"
-              />
-            </div>
+    <div className="min-h-screen bg-dark flex items-center justify-center">
+      <div className="bg-dark-light p-8 rounded-xl border border-gold/20 shadow-xl w-full max-w-md">
+        <h1 className="text-2xl text-white text-center mb-6">
+          Área <span className="text-gold">Administrativa</span>
+        </h1>
+        
+        <form onSubmit={handleLogin} className="space-y-6">
+          <div>
+            <label htmlFor="email" className="block text-sm text-gold mb-2">Email</label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-3 bg-dark border border-gold/30 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-gold/50"
+              placeholder="admin@exemplo.com"
+              required
+            />
           </div>
-          <h1 className="text-2xl text-center text-white mb-6">Área <span className="text-gold">Administrativa</span></h1>
           
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm text-gold mb-2" htmlFor="username">
-                Usuário
-              </label>
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full p-3 bg-dark border border-gold/30 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-gold/50"
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm text-gold mb-2" htmlFor="password">
-                Senha
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-3 bg-dark border border-gold/30 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-gold/50"
-                required
-              />
-            </div>
-            
-            <button 
-              type="submit"
-              className="w-full gold-button py-3 rounded-lg flex items-center justify-center"
-            >
-              <Lock className="h-4 w-4 mr-2" />
-              Entrar
-            </button>
-          </form>
-        </div>
+          <div>
+            <label htmlFor="password" className="block text-sm text-gold mb-2">Senha</label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-3 bg-dark border border-gold/30 rounded-lg text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-gold/50"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          
+          <button
+            type="submit"
+            className="w-full gold-button py-3 rounded-md flex justify-center items-center"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <span className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></span>
+            ) : (
+              'Entrar'
+            )}
+          </button>
+          
+          <div className="text-center text-sm text-gray-400">
+            <p>Acesso restrito a administradores</p>
+            <a href="/" className="text-gold hover:underline">Voltar para o site</a>
+          </div>
+        </form>
       </div>
     </div>
   );

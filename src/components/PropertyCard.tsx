@@ -1,24 +1,65 @@
+
 import { Link } from 'react-router-dom';
-import { Building, Bed, MapPin } from 'lucide-react';
+import { Building, Bed, MapPin, Phone } from 'lucide-react';
 
 export interface PropertyType {
   id: string;
   title: string;
-  type: string;
-  price: string;
+  type?: string;
+  transaction_type?: string;
+  price: string | number;
   location: string;
   bedrooms: number;
   area: number;
-  imageUrl: string;
+  imageUrl?: string;
+  image_url?: string;
   featured?: boolean;
   sold?: boolean;
+  property_type?: string;
+  description?: string;
 }
 
 interface PropertyCardProps {
   property: PropertyType;
 }
 
+const formatPrice = (price: string | number): string => {
+  if (typeof price === 'string' && price.includes('R$')) {
+    return price;
+  }
+  
+  const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
+  
+  if (isNaN(numericPrice)) {
+    return 'Preço sob consulta';
+  }
+  
+  // Se o preço for menor que 1000, provavelmente é aluguel
+  if (numericPrice < 1000) {
+    return `R$ ${numericPrice.toLocaleString('pt-BR')}/mês`;
+  }
+  
+  return `R$ ${numericPrice.toLocaleString('pt-BR')}`;
+};
+
 const PropertyCard = ({ property }: PropertyCardProps) => {
+  // Use o campo image_url se disponível, senão use imageUrl (compatibilidade)
+  const imageSource = property.image_url || property.imageUrl;
+  // Use o campo transaction_type se disponível, senão use type (compatibilidade)
+  const transactionType = property.transaction_type || property.type;
+  // Use o campo property_type se disponível
+  const propertyType = property.property_type || '';
+  
+  const handleWhatsAppClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const message = `Olá! Gostaria de obter mais informações sobre o imóvel: ${property.title}`;
+    const phoneNumber = "5511950824205"; // Número formatado sem hífen ou espaços
+    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+  };
+
   return (
     <Link 
       to={`/property/${property.id}`} 
@@ -27,7 +68,7 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
       <div className="relative overflow-hidden">
         <div className="h-64 overflow-hidden">
           <img
-            src={property.imageUrl}
+            src={imageSource}
             alt={property.title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             loading="lazy"
@@ -38,6 +79,14 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
           <div className="absolute top-3 right-3">
             <span className="bg-gold px-3 py-1 text-xs font-medium text-black rounded">
               Destaque
+            </span>
+          </div>
+        )}
+        
+        {property.sold && (
+          <div className="absolute top-3 left-3">
+            <span className="bg-red-600 px-3 py-1 text-xs font-medium text-white rounded">
+              Vendido
             </span>
           </div>
         )}
@@ -67,12 +116,27 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
               {property.bedrooms} {property.bedrooms > 1 ? 'Quartos' : 'Quarto'}
             </span>
           </div>
+          
+          {propertyType && (
+            <div className="flex items-center">
+              <span className="text-white text-sm bg-dark-lighter px-2 py-1 rounded-md">
+                {propertyType}
+              </span>
+            </div>
+          )}
         </div>
         
         <div className="flex justify-between items-center pt-3 border-t border-gold/10">
-          <div className="text-gold font-semibold">{property.price}</div>
-          <span className="text-xs text-gray-400">{property.type}</span>
+          <div className="text-gold font-semibold">{formatPrice(property.price)}</div>
+          <span className="text-xs text-gray-400">{transactionType}</span>
         </div>
+        
+        <button
+          onClick={handleWhatsAppClick}
+          className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-md flex items-center justify-center"
+        >
+          <Phone className="h-4 w-4 mr-2" /> Falar no WhatsApp
+        </button>
       </div>
     </Link>
   );

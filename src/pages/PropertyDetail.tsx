@@ -3,74 +3,63 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapPin, Calendar, Building, Bed, ChevronLeft, ChevronRight, Phone } from 'lucide-react';
 import { PropertyType } from '@/components/PropertyCard';
-
-// Sample property data
-const properties: Record<string, PropertyType & { description: string; features: string[]; images: string[] }> = {
-  '1': {
-    id: '1',
-    title: 'Casa de Luxo em Alphaville',
-    type: 'Venda',
-    price: 'R$ 2.400.000',
-    location: 'Alphaville, São Paulo',
-    bedrooms: 4,
-    area: 350,
-    imageUrl: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625',
-    description: 'Esplêndida casa de luxo em Alphaville, com acabamentos de alta qualidade, piscina, jardim e ampla área de lazer. Localizada em um dos condomínios mais exclusivos da região, oferece privacidade e segurança 24 horas. A residência possui 4 suítes, home office, espaço gourmet e garagem para 4 carros.',
-    features: ['4 Suítes', 'Piscina', 'Jardim', 'Home Office', 'Espaço Gourmet', '4 Vagas de Garagem', 'Segurança 24h'],
-    images: [
-      'https://images.unsplash.com/photo-1487958449943-2429e8be8625',
-      'https://images.unsplash.com/photo-1502005097973-6a7082348e28',
-      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750'
-    ]
-  },
-  '2': {
-    id: '2',
-    title: 'Mansão Contemporânea',
-    type: 'Venda',
-    price: 'R$ 4.900.000',
-    location: 'Barra da Tijuca, Rio de Janeiro',
-    bedrooms: 5,
-    area: 480,
-    imageUrl: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742',
-    description: 'Luxuosa mansão contemporânea na Barra da Tijuca com vista panorâmica para o mar. Projeto arquitetônico assinado, com 5 suítes, cinema em casa, academia, piscina de borda infinita e deck para iates. Um verdadeiro refúgio de luxo com acabamentos de padrão internacional.',
-    features: ['5 Suítes', 'Cinema', 'Academia', 'Piscina de Borda Infinita', 'Vista para o Mar', 'Deck para Iates', '6 Vagas de Garagem'],
-    images: [
-      'https://images.unsplash.com/photo-1518005020951-eccb494ad742',
-      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9',
-      'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c'
-    ]
-  },
-  '3': {
-    id: '3',
-    title: 'Penthouse com Vista para o Mar',
-    type: 'Venda',
-    price: 'R$ 3.200.000',
-    location: 'Balneário Camboriú, SC',
-    bedrooms: 3,
-    area: 220,
-    imageUrl: 'https://images.unsplash.com/photo-1483058712412-4245e9b90334',
-    description: 'Deslumbrante penthouse de 220m² no coração de Balneário Camboriú, oferecendo uma vista panorâmica imbatível do mar. Com 3 suítes luxuosas, sala de estar ampla com pé direito duplo, cozinha gourmet e uma extensa varanda com jacuzzi. Empreendimento com serviços exclusivos de hotel cinco estrelas.',
-    features: ['3 Suítes', 'Pé Direito Duplo', 'Varanda Gourmet', 'Jacuzzi', 'Vista para o Mar', 'Serviços de Hotel 5 Estrelas', '2 Vagas de Garagem'],
-    images: [
-      'https://images.unsplash.com/photo-1483058712412-4245e9b90334',
-      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2',
-      'https://images.unsplash.com/photo-1484154218962-a197022b5858'
-    ]
-  }
-};
+import { supabase } from "@/integrations/supabase/client";
 
 const PropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const [property, setProperty] = useState<(PropertyType & { description: string; features: string[]; images: string[] }) | null>(null);
+  const [property, setProperty] = useState<PropertyType & { description: string; images: string[] } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
-    // In a real application, fetch the property from an API
-    if (id && properties[id]) {
-      setProperty(properties[id]);
-    }
-    setLoading(false);
+    const fetchProperty = async () => {
+      if (!id) return;
+      
+      try {
+        // Buscar detalhes do imóvel do Supabase
+        const { data, error } = await supabase
+          .from('properties')
+          .select('*')
+          .eq('id', id)
+          .single();
+          
+        if (error) {
+          console.error('Erro ao buscar detalhes do imóvel:', error);
+          setError('Não foi possível carregar os detalhes do imóvel.');
+        } else if (data) {
+          // Formatar os dados para o formato esperado
+          const formattedProperty = {
+            id: data.id,
+            title: data.title,
+            type: data.transaction_type,
+            transaction_type: data.transaction_type,
+            price: data.price,
+            location: data.location,
+            bedrooms: data.bedrooms,
+            area: data.area,
+            imageUrl: data.image_url,
+            image_url: data.image_url,
+            featured: data.featured,
+            sold: data.sold,
+            property_type: data.property_type,
+            description: data.description,
+            // Para demo, usando a mesma imagem repetida 3 vezes - em produção, isso viria do banco de dados
+            images: [data.image_url, data.image_url, data.image_url]
+          };
+          setProperty(formattedProperty);
+        } else {
+          setError('Imóvel não encontrado.');
+        }
+      } catch (err) {
+        console.error('Erro inesperado:', err);
+        setError('Ocorreu um erro inesperado.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperty();
   }, [id]);
 
   const nextImage = () => {
@@ -91,7 +80,7 @@ const PropertyDetail = () => {
 
   const handleWhatsAppClick = () => {
     const message = `Olá! Gostaria de obter mais informações sobre o imóvel: ${property?.title}`;
-    const phoneNumber = "5511999999999"; // Replace with actual WhatsApp number
+    const phoneNumber = "5511950824205"; // Número formatado sem hífen ou espaços
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
@@ -99,18 +88,18 @@ const PropertyDetail = () => {
   if (loading) {
     return (
       <div className="min-h-screen pt-32 pb-16 bg-dark flex items-center justify-center">
-        <div className="animate-pulse text-gold">Carregando...</div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold"></div>
       </div>
     );
   }
 
-  if (!property) {
+  if (error || !property) {
     return (
       <div className="min-h-screen pt-32 pb-16 bg-dark">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center py-16">
             <h2 className="text-white text-2xl mb-4">Imóvel não encontrado</h2>
-            <p className="text-gray-300 mb-8">O imóvel que você está procurando não existe ou foi removido.</p>
+            <p className="text-gray-300 mb-8">{error || 'O imóvel que você está procurando não existe ou foi removido.'}</p>
             <Link to="/properties" className="gold-button px-6 py-3 rounded-md">
               Voltar para Imóveis
             </Link>
@@ -119,6 +108,25 @@ const PropertyDetail = () => {
       </div>
     );
   }
+
+  const formatPrice = (price: string | number): string => {
+    if (typeof price === 'string' && price.includes('R$')) {
+      return price;
+    }
+    
+    const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
+    
+    if (isNaN(numericPrice)) {
+      return 'Preço sob consulta';
+    }
+    
+    // Se o preço for menor que 1000, provavelmente é aluguel
+    if (numericPrice < 1000) {
+      return `R$ ${numericPrice.toLocaleString('pt-BR')}/mês`;
+    }
+    
+    return `R$ ${numericPrice.toLocaleString('pt-BR')}`;
+  };
 
   return (
     <div className="min-h-screen pt-32 pb-16 bg-dark">
@@ -145,6 +153,12 @@ const PropertyDetail = () => {
             alt={property.title}
             className="w-full h-full object-cover"
           />
+          
+          {property.sold && (
+            <div className="absolute top-4 left-4 bg-red-600 text-white py-1 px-4 rounded-md">
+              VENDIDO
+            </div>
+          )}
           
           <button 
             onClick={prevImage}
@@ -200,7 +214,7 @@ const PropertyDetail = () => {
           <div className="lg:col-span-2">
             <div className="mb-6">
               <span className="text-gold text-sm font-medium bg-gold/10 px-3 py-1 rounded-md">
-                {property.type}
+                {property.transaction_type || property.type}
               </span>
               <h1 className="text-white text-3xl md:text-4xl mt-4 mb-2">{property.title}</h1>
               <div className="flex items-center">
@@ -224,8 +238,8 @@ const PropertyDetail = () => {
               
               <div className="p-4 glass-dark rounded-lg text-center">
                 <Calendar className="h-6 w-6 text-gold mx-auto mb-2" />
-                <span className="block text-sm text-gray-400">Publicado</span>
-                <span className="block text-white font-medium">Hoje</span>
+                <span className="block text-sm text-gray-400">Tipo</span>
+                <span className="block text-white font-medium">{property.property_type}</span>
               </div>
             </div>
             
@@ -235,24 +249,12 @@ const PropertyDetail = () => {
             </div>
             
             <div className="mb-8">
-              <h2 className="text-white text-xl mb-4">Características</h2>
-              <ul className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {property.features.map((feature, index) => (
-                  <li key={index} className="flex items-center">
-                    <span className="w-2 h-2 bg-gold rounded-full mr-2"></span>
-                    <span className="text-gray-300">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            <div className="mb-8">
               <h2 className="text-white text-xl mb-4">Localização</h2>
               <div className="bg-gray-800 h-64 rounded-lg overflow-hidden">
-                {/* In a real application, you would integrate Google Maps here */}
+                {/* Em uma aplicação real, você integraria o Google Maps aqui */}
                 <div className="w-full h-full flex items-center justify-center bg-gray-700 text-gray-400">
                   <MapPin className="h-8 w-8 mr-2" />
-                  <span>Mapa Indisponível</span>
+                  <span>{property.location}</span>
                 </div>
               </div>
             </div>
@@ -263,7 +265,7 @@ const PropertyDetail = () => {
             <div className="sticky top-32 glass-dark rounded-xl p-6 border border-gold/20">
               <div className="mb-4">
                 <span className="text-gray-400 text-sm">Preço</span>
-                <div className="text-gold text-2xl font-semibold">{property.price}</div>
+                <div className="text-gold text-2xl font-semibold">{formatPrice(property.price)}</div>
               </div>
               
               <div className="border-t border-gold/10 pt-4 mb-6">
@@ -282,12 +284,18 @@ const PropertyDetail = () => {
               
               <button
                 className="w-full border border-gold text-gold py-3 rounded-md hover:bg-gold/10 transition-colors"
+                onClick={() => {
+                  const message = `Olá! Gostaria de agendar uma visita para o imóvel: ${property.title}`;
+                  const phoneNumber = "5511950824205";
+                  const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+                  window.open(url, '_blank');
+                }}
               >
                 Agendar Visita
               </button>
               
               <div className="mt-6 text-center text-sm text-gray-500">
-                <p>Código do Imóvel: FI-{property.id.padStart(4, '0')}</p>
+                <p>Código do Imóvel: FI-{property.id.substring(0, 8)}</p>
               </div>
             </div>
           </div>

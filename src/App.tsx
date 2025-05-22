@@ -15,6 +15,7 @@ import Footer from "./components/Footer";
 import WhatsAppButton from "./components/WhatsAppButton";
 import AdminLogin from "./components/AdminLogin";
 import AdminProperties from "./pages/admin/AdminProperties";
+import PropertyForm from "./pages/admin/PropertyForm";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,8 @@ const App = () => (
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout><AdminLogin /></AdminLayout>} />
             <Route path="/admin/properties" element={<AdminLayout><AdminProperties /></AdminLayout>} />
+            <Route path="/admin/property/new" element={<AdminLayout><PropertyForm /></AdminLayout>} />
+            <Route path="/admin/property/edit/:id" element={<AdminLayout><PropertyForm /></AdminLayout>} />
             
             {/* Standard Routes */}
             <Route path="/" element={<StandardLayout><Index /></StandardLayout>} />

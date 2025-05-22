@@ -13,15 +13,15 @@ const SearchFilters = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // In a real application, this would construct a query string with the filters
-    navigate('/properties', { 
-      state: { 
-        transactionType, 
-        propertyType, 
-        priceRange, 
-        city 
-      } 
-    });
+    // Mapear valores para filtros usados na página Properties.tsx
+    const filters = { 
+      transactionType, 
+      propertyType, 
+      priceRange, 
+      city 
+    };
+    
+    navigate('/properties', { state: filters });
   };
 
   return (
@@ -51,15 +51,15 @@ const SearchFilters = () => {
 
         <div className="relative">
           <div className="border border-gold/30 rounded-lg p-4 text-white bg-dark-light/50 flex justify-between items-center cursor-pointer group">
-            <span>{propertyType || 'Tipo'}</span>
+            <span>{propertyType || 'Tipo de Imóvel'}</span>
             <ChevronDown className="h-4 w-4 text-gold" />
             
             <div className="hidden absolute left-0 right-0 top-full mt-2 bg-dark-lighter border border-gold/30 rounded-md shadow-lg z-10 group-hover:block">
-              {['Casa', 'Apartamento', 'Terreno', 'Chácara'].map((type) => (
+              {['Casa', 'Apartamento', 'Terreno', 'Kitnet'].map((type) => (
                 <div 
                   key={type} 
                   className="p-3 hover:bg-gold/10 cursor-pointer"
-                  onClick={() => setPropertyType(type)}
+                  onClick={() => setPropertyType(type.toLowerCase())}
                 >
                   {type}
                 </div>
@@ -75,17 +75,17 @@ const SearchFilters = () => {
             
             <div className="hidden absolute left-0 right-0 top-full mt-2 bg-dark-lighter border border-gold/30 rounded-md shadow-lg z-10 group-hover:block">
               {[
-                'Até R$500 mil', 
-                'R$500 mil - R$1 milhão',
-                'R$1 milhão - R$2 milhões',
-                'Acima de R$2 milhões'
+                {label: 'Até R$500 mil', value: 'ate500'}, 
+                {label: 'R$500 mil - R$1 milhão', value: '500a1m'},
+                {label: 'R$1 milhão - R$2 milhões', value: '1ma2m'},
+                {label: 'Acima de R$2 milhões', value: 'acima2m'}
               ].map((range) => (
                 <div 
-                  key={range} 
+                  key={range.value} 
                   className="p-3 hover:bg-gold/10 cursor-pointer"
-                  onClick={() => setPriceRange(range)}
+                  onClick={() => setPriceRange(range.value)}
                 >
-                  {range}
+                  {range.label}
                 </div>
               ))}
             </div>

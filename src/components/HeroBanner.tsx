@@ -21,11 +21,11 @@ const HeroBanner = () => {
       <div className="container mx-auto px-4 md:px-6 pt-32 pb-24 relative z-10">
         <div className="max-w-5xl mx-auto text-center mb-12">
           <h1 className="text-white mb-6 leading-tight">
-            ENCONTRE SEU<br /> 
-            <span className="text-gold">IMÓVEL DE ALTO PADRÃO</span>
+            ENCONTRE O<br /> 
+            <span className="text-gold">IMÓVEL DOS SEUS SONHOS</span>
           </h1>
           <p className="text-white/80 text-xl md:text-2xl max-w-2xl mx-auto">
-            Com a Fernandes Imóveis, seu próximo lar está ao alcance.
+            Do popular ao alto padrão, a Fernandes Imóveis tem a solução ideal para você.
           </p>
         </div>
 

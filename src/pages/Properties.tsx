@@ -3,89 +3,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 import PropertyCard, { PropertyType } from '@/components/PropertyCard';
-
-// Sample properties data
-const allProperties: PropertyType[] = [
-  {
-    id: '1',
-    title: 'Casa de Luxo em Alphaville',
-    type: 'Venda',
-    price: 'R$ 2.400.000',
-    location: 'Alphaville, São Paulo',
-    bedrooms: 4,
-    area: 350,
-    imageUrl: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625',
-    featured: true
-  },
-  {
-    id: '2',
-    title: 'Mansão Contemporânea',
-    type: 'Venda',
-    price: 'R$ 4.900.000',
-    location: 'Barra da Tijuca, Rio de Janeiro',
-    bedrooms: 5,
-    area: 480,
-    imageUrl: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742',
-    featured: true
-  },
-  {
-    id: '3',
-    title: 'Penthouse com Vista para o Mar',
-    type: 'Venda',
-    price: 'R$ 3.200.000',
-    location: 'Balneário Camboriú, SC',
-    bedrooms: 3,
-    area: 220,
-    imageUrl: 'https://images.unsplash.com/photo-1483058712412-4245e9b90334',
-    featured: true
-  },
-  {
-    id: '4',
-    title: 'Apartamento de Alto Padrão',
-    type: 'Aluguel',
-    price: 'R$ 12.000/mês',
-    location: 'Jardins, São Paulo',
-    bedrooms: 2,
-    area: 150,
-    imageUrl: 'https://images.unsplash.com/photo-1527576539890-dfa815648363'
-  },
-  {
-    id: '5',
-    title: 'Casa com Piscina em Condomínio',
-    type: 'Venda',
-    price: 'R$ 1.800.000',
-    location: 'Ribeirão Preto, SP',
-    bedrooms: 4,
-    area: 280,
-    imageUrl: 'https://images.unsplash.com/photo-1488972685288-c3fd157d7c7a'
-  },
-  {
-    id: '6',
-    title: 'Terreno em Área Nobre',
-    type: 'Venda',
-    price: 'R$ 900.000',
-    location: 'Campinas, SP',
-    bedrooms: 0,
-    area: 500,
-    imageUrl: 'https://images.unsplash.com/photo-1426604966848-d7adac402bff'
-  }
-];
-
-// Map price range values to actual price ranges
-const priceRangeMap: Record<string, [number, number]> = {
-  'ate500': [0, 500000],
-  '500a1m': [500000, 1000000],
-  '1ma2m': [1000000, 2000000],
-  'acima2m': [2000000, Infinity]
-};
-
-// Price format helper
-const formatPrice = (price: string): number => {
-  if (price.includes('/mês')) {
-    return parseInt(price.replace(/\D+/g, ''));
-  }
-  return parseInt(price.replace(/\D+/g, ''));
-};
+import { supabase } from "@/integrations/supabase/client";
 
 const Properties = () => {
   const location = useLocation();
@@ -97,10 +15,20 @@ const Properties = () => {
     city: ''
   });
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('recent');
 
+  // Mapeamento de faixas de preço para valores reais
+  const priceRangeMap: Record<string, [number, number]> = {
+    'ate500': [0, 500000],
+    '500a1m': [500000, 1000000],
+    '1ma2m': [1000000, 2000000],
+    'acima2m': [2000000, Infinity]
+  };
+
   useEffect(() => {
-    // Apply any filters that might have been passed in location state
+    // Aplicar filtros que possam ter sido passados no estado da localização
     const locationState = location.state as any;
     if (locationState) {
       setFilters(prev => ({
@@ -112,37 +40,69 @@ const Properties = () => {
       }));
     }
 
-    // In a real application, you would fetch data from your API here
-    setProperties(allProperties);
-    setIsLoaded(true);
+    const fetchProperties = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Buscar propriedades do Supabase
+        const { data, error } = await supabase
+          .from('properties')
+          .select('*')
+          .order('created_at', { ascending: false });
+          
+        if (error) {
+          console.error('Erro ao buscar propriedades:', error);
+          setError('Não foi possível carregar os imóveis.');
+        } else {
+          // Formatar os dados para o formato esperado pelo PropertyCard
+          const formattedData = data.map(item => ({
+            id: item.id,
+            title: item.title,
+            type: item.transaction_type,
+            transaction_type: item.transaction_type,
+            price: item.price,
+            location: item.location,
+            bedrooms: item.bedrooms,
+            area: item.area,
+            imageUrl: item.image_url,
+            image_url: item.image_url,
+            featured: item.featured,
+            sold: item.sold,
+            property_type: item.property_type,
+            description: item.description
+          }));
+          setProperties(formattedData);
+        }
+      } catch (err) {
+        console.error('Erro inesperado:', err);
+        setError('Ocorreu um erro inesperado.');
+      } finally {
+        setIsLoading(false);
+        setIsLoaded(true);
+      }
+    };
+
+    fetchProperties();
   }, [location]);
 
-  // Filter properties based on user selection
+  // Filtrar propriedades com base na seleção do usuário
   const filteredProperties = properties.filter(property => {
-    // Filter by transaction type
+    // Filtrar por tipo de transação
     if (filters.transactionType !== 'todos') {
-      if (filters.transactionType === 'comprar' && property.type !== 'Venda') return false;
-      if (filters.transactionType === 'alugar' && property.type !== 'Aluguel') return false;
+      const transactionType = property.transaction_type || property.type || '';
+      if (filters.transactionType === 'comprar' && transactionType !== 'Venda') return false;
+      if (filters.transactionType === 'alugar' && transactionType !== 'Aluguel') return false;
     }
     
-    // Filter by property type
+    // Filtrar por tipo de propriedade
     if (filters.propertyType !== 'todos') {
-      const propertyTypeMap: Record<string, string[]> = {
-        'casa': ['Casa', 'Casa de Luxo', 'Mansão'],
-        'apartamento': ['Apartamento', 'Penthouse', 'Apartamento de Alto Padrão'],
-        'terreno': ['Terreno'],
-        'chacara': ['Chácara'],
-      };
-      
-      const validTypes = propertyTypeMap[filters.propertyType] || [];
-      if (!validTypes.some(type => property.title.toLowerCase().includes(type.toLowerCase()))) {
-        return false;
-      }
+      const propertyType = property.property_type || '';
+      if (filters.propertyType.toLowerCase() !== propertyType.toLowerCase()) return false;
     }
     
-    // Filter by price range
+    // Filtrar por faixa de preço
     if (filters.priceRange !== 'todos') {
-      const priceValue = formatPrice(property.price);
+      const priceValue = typeof property.price === 'string' ? parseFloat(property.price.replace(/\D+/g, '')) : property.price;
       const [minPrice, maxPrice] = priceRangeMap[filters.priceRange] || [0, Infinity];
       
       if (priceValue < minPrice || priceValue > maxPrice) {
@@ -150,22 +110,28 @@ const Properties = () => {
       }
     }
     
-    // Filter by city
-    if (filters.city && !property.location.toLowerCase().includes(filters.city.toLowerCase())) {
-      return false;
+    // Filtrar por cidade
+    if (filters.city) {
+      const locationLower = property.location.toLowerCase();
+      if (!locationLower.includes(filters.city.toLowerCase())) {
+        return false;
+      }
     }
     
     return true;
   });
 
-  // Sort properties based on selection
+  // Ordenar propriedades com base na seleção
   const sortedProperties = [...filteredProperties].sort((a, b) => {
+    const priceA = typeof a.price === 'string' ? parseFloat(a.price.replace(/\D+/g, '')) : a.price;
+    const priceB = typeof b.price === 'string' ? parseFloat(b.price.replace(/\D+/g, '')) : b.price;
+    
     if (sortBy === 'lowPrice') {
-      return formatPrice(a.price) - formatPrice(b.price);
+      return priceA - priceB;
     } else if (sortBy === 'highPrice') {
-      return formatPrice(b.price) - formatPrice(a.price);
+      return priceB - priceA;
     }
-    // Default to recent (no sorting required as we assume they're already sorted by recency)
+    // Default para recentes (sem ordenação necessária, pois já estão ordenados por recência)
     return 0;
   });
 
@@ -188,7 +154,7 @@ const Properties = () => {
             NOSSOS <span className="text-gold">IMÓVEIS</span>
           </h1>
           
-          {/* Filters */}
+          {/* Filtros */}
           <div className="mb-10 grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
               <label className="block text-sm text-gold mb-2">Tipo de Transação</label>
@@ -218,7 +184,7 @@ const Properties = () => {
                   <option value="casa">Casa</option>
                   <option value="apartamento">Apartamento</option>
                   <option value="terreno">Terreno</option>
-                  <option value="chacara">Chácara</option>
+                  <option value="kitnet">Kitnet</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gold h-4 w-4 pointer-events-none" />
               </div>
@@ -256,48 +222,66 @@ const Properties = () => {
         </div>
       </div>
       
-      {/* Property Listings */}
+      {/* Listagem de Propriedades */}
       <section className="py-16 bg-dark">
         <div className="container mx-auto px-4 md:px-6">
-          <div className="mb-8 flex justify-between items-center">
-            <h2 className="text-white text-xl">
-              {sortedProperties.length} {sortedProperties.length === 1 ? 'imóvel encontrado' : 'imóveis encontrados'}
-            </h2>
-            <div className="relative border border-gold/30 rounded-lg">
-              <select 
-                className="p-2 bg-dark text-white appearance-none pr-8 focus:outline-none"
-                value={sortBy}
-                onChange={handleSortChange}
-              >
-                <option value="recent">Mais Recentes</option>
-                <option value="lowPrice">Menor Preço</option>
-                <option value="highPrice">Maior Preço</option>
-              </select>
-              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gold h-4 w-4 pointer-events-none" />
+          {isLoading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gold"></div>
             </div>
-          </div>
-          
-          {sortedProperties.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {sortedProperties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
-              ))}
-            </div>
-          ) : (
+          ) : error ? (
             <div className="text-center py-16">
-              <p className="text-white text-xl mb-4">Nenhum imóvel encontrado com os filtros selecionados.</p>
+              <p className="text-red-500 mb-4">{error}</p>
               <button 
-                onClick={() => setFilters({
-                  transactionType: 'todos',
-                  propertyType: 'todos',
-                  priceRange: 'todos',
-                  city: ''
-                })}
+                onClick={() => window.location.reload()}
                 className="gold-button px-6 py-2 rounded-md"
               >
-                Limpar Filtros
+                Tentar novamente
               </button>
             </div>
+          ) : (
+            <>
+              <div className="mb-8 flex justify-between items-center">
+                <h2 className="text-white text-xl">
+                  {sortedProperties.length} {sortedProperties.length === 1 ? 'imóvel encontrado' : 'imóveis encontrados'}
+                </h2>
+                <div className="relative border border-gold/30 rounded-lg">
+                  <select 
+                    className="p-2 bg-dark text-white appearance-none pr-8 focus:outline-none"
+                    value={sortBy}
+                    onChange={handleSortChange}
+                  >
+                    <option value="recent">Mais Recentes</option>
+                    <option value="lowPrice">Menor Preço</option>
+                    <option value="highPrice">Maior Preço</option>
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gold h-4 w-4 pointer-events-none" />
+                </div>
+              </div>
+              
+              {sortedProperties.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {sortedProperties.map((property) => (
+                    <PropertyCard key={property.id} property={property} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <p className="text-white text-xl mb-4">Nenhum imóvel encontrado com os filtros selecionados.</p>
+                  <button 
+                    onClick={() => setFilters({
+                      transactionType: 'todos',
+                      propertyType: 'todos',
+                      priceRange: 'todos',
+                      city: ''
+                    })}
+                    className="gold-button px-6 py-2 rounded-md"
+                  >
+                    Limpar Filtros
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>

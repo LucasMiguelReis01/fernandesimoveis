@@ -2,7 +2,7 @@
 import { Phone } from 'lucide-react';
 
 const WhatsAppButton = () => {
-  const phoneNumber = "5511999999999"; // Replace with actual WhatsApp number
+  const phoneNumber = "5511950824205"; // Número formatado sem hífen ou espaços
   const message = "Olá! Gostaria de obter mais informações sobre os imóveis.";
   
   const handleWhatsAppClick = () => {
