@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
 import { PropertyType } from '@/components/PropertyCard';
+import ImageUpload from '@/components/ImageUpload';
 
 const PropertyForm = () => {
   const { id } = useParams<{ id: string }>();
@@ -111,6 +112,10 @@ const PropertyForm = () => {
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+  };
+
+  const handleImageChange = (imageUrl: string) => {
+    setFormData(prev => ({ ...prev, image_url: imageUrl }));
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -287,17 +292,12 @@ const PropertyForm = () => {
                 />
               </div>
               
-              <div>
-                <label htmlFor="image_url" className="block text-sm text-gold mb-2">URL da Imagem *</label>
-                <input
-                  id="image_url"
-                  name="image_url"
-                  type="text"
+              <div className="md:col-span-2">
+                <label className="block text-sm text-gold mb-2">Imagem do Imóvel *</label>
+                <ImageUpload
                   value={formData.image_url}
-                  onChange={handleChange}
-                  className="w-full p-3 bg-dark border border-gold/30 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-gold/50"
-                  placeholder="https://exemplo.com/imagem.jpg"
-                  required
+                  onChange={handleImageChange}
+                  placeholder="Selecionar imagem"
                 />
               </div>
               
