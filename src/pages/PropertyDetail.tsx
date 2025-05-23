@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MapPin, Calendar, Building, Bed, ChevronLeft, ChevronRight, Phone } from 'lucide-react';
+import { MapPin, Calendar, Building, Bed, ChevronLeft, ChevronRight, Phone, Upload } from 'lucide-react';
 import { PropertyType } from '@/components/PropertyCard';
 import { supabase } from "@/integrations/supabase/client";
+import ImageGalleryManager from '@/components/ImageGalleryManager';
 
 const PropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -11,6 +11,26 @@ const PropertyDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showGalleryManager, setShowGalleryManager] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // Check if user is admin
+    const checkAdminStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        
+        setIsAdmin(profile?.role === 'admin');
+      }
+    };
+
+    checkAdminStatus();
+  }, []);
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -61,6 +81,15 @@ const PropertyDetail = () => {
 
     fetchProperty();
   }, [id]);
+
+  const handleImagesChange = (newImages: string[]) => {
+    if (property) {
+      setProperty({
+        ...property,
+        images: newImages
+      });
+    }
+  };
 
   const nextImage = () => {
     if (property) {
@@ -145,69 +174,105 @@ const PropertyDetail = () => {
             <span className="text-gold">{property.title}</span>
           </div>
         </div>
+
+        {/* Admin Gallery Manager Toggle */}
+        {isAdmin && property && (
+          <div className="mb-6">
+            <button
+              onClick={() => setShowGalleryManager(!showGalleryManager)}
+              className="flex items-center gap-2 bg-gold hover:bg-gold/80 text-dark px-4 py-2 rounded-md transition-colors"
+            >
+              <Upload className="h-4 w-4" />
+              {showGalleryManager ? 'Ocultar' : 'Gerenciar'} Galeria
+            </button>
+          </div>
+        )}
+
+        {/* Gallery Manager (Admin Only) */}
+        {showGalleryManager && isAdmin && property && (
+          <div className="mb-8 p-6 glass-dark rounded-xl border border-gold/20">
+            <ImageGalleryManager
+              images={property.images}
+              onImagesChange={handleImagesChange}
+              propertyTitle={property.title}
+            />
+          </div>
+        )}
         
         {/* Image Gallery */}
-        <div className="relative h-96 md:h-[500px] mb-8 rounded-xl overflow-hidden">
-          <img
-            src={property.images[currentImageIndex]}
-            alt={property.title}
-            className="w-full h-full object-cover"
-          />
-          
-          {property.sold && (
-            <div className="absolute top-4 left-4 bg-red-600 text-white py-1 px-4 rounded-md">
-              VENDIDO
+        {property && (
+          <div className="relative h-96 md:h-[500px] mb-8 rounded-xl overflow-hidden">
+            <img
+              src={property.images[currentImageIndex]}
+              alt={property.title}
+              className="w-full h-full object-cover"
+            />
+            
+            {property.sold && (
+              <div className="absolute top-4 left-4 bg-red-600 text-white py-1 px-4 rounded-md">
+                VENDIDO
+              </div>
+            )}
+            
+            <button 
+              onClick={() => {
+                setCurrentImageIndex(prevIndex => 
+                  prevIndex === 0 ? property.images.length - 1 : prevIndex - 1
+                );
+              }}
+              className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-2 rounded-full"
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="h-6 w-6 text-white" />
+            </button>
+            
+            <button 
+              onClick={() => {
+                setCurrentImageIndex(prevIndex => 
+                  prevIndex === property.images.length - 1 ? 0 : prevIndex + 1
+                );
+              }}
+              className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-2 rounded-full"
+              aria-label="Next image"
+            >
+              <ChevronRight className="h-6 w-6 text-white" />
+            </button>
+            
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+              {property.images.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentImageIndex(index)}
+                  className={`w-2 h-2 rounded-full ${
+                    index === currentImageIndex ? 'bg-gold' : 'bg-white/50'
+                  }`}
+                  aria-label={`Go to image ${index + 1}`}
+                />
+              ))}
             </div>
-          )}
-          
-          <button 
-            onClick={prevImage}
-            className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-2 rounded-full"
-            aria-label="Previous image"
-          >
-            <ChevronLeft className="h-6 w-6 text-white" />
-          </button>
-          
-          <button 
-            onClick={nextImage}
-            className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-2 rounded-full"
-            aria-label="Next image"
-          >
-            <ChevronRight className="h-6 w-6 text-white" />
-          </button>
-          
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-            {property.images.map((_, index) => (
+          </div>
+        )}
+        
+        {/* Property Thumbnails */}
+        {property && property.images.length > 0 && (
+          <div className="flex space-x-2 mb-8 overflow-x-auto pb-2">
+            {property.images.map((image, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentImageIndex(index)}
-                className={`w-2 h-2 rounded-full ${
-                  index === currentImageIndex ? 'bg-gold' : 'bg-white/50'
+                className={`flex-shrink-0 w-24 h-24 rounded-md overflow-hidden ${
+                  index === currentImageIndex ? 'ring-2 ring-gold' : ''
                 }`}
-                aria-label={`Go to image ${index + 1}`}
-              />
+              >
+                <img
+                  src={image}
+                  alt={`${property.title} - image ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </button>
             ))}
           </div>
-        </div>
-        
-        {/* Property Thumbnails */}
-        <div className="flex space-x-2 mb-8 overflow-x-auto pb-2">
-          {property.images.map((image, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentImageIndex(index)}
-              className={`flex-shrink-0 w-24 h-24 rounded-md overflow-hidden ${
-                index === currentImageIndex ? 'ring-2 ring-gold' : ''
-              }`}
-            >
-              <img
-                src={image}
-                alt={`${property.title} - image ${index + 1}`}
-                className="w-full h-full object-cover"
-              />
-            </button>
-          ))}
-        </div>
+        )}
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Property Details */}

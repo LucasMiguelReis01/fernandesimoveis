@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Search } from 'lucide-react';
+import { Menu, X, Search, Settings } from 'lucide-react';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -76,6 +76,14 @@ const Navbar = () => {
             >
               <Search className="h-5 w-5 text-gold" />
             </button>
+            <Link 
+              to="/admin"
+              aria-label="Admin" 
+              className="p-2 rounded-full hover:bg-dark-lighter transition-colors"
+              title="Área Administrativa"
+            >
+              <Settings className="h-5 w-5 text-gold" />
+            </Link>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -117,6 +125,13 @@ const Navbar = () => {
             >
               <Search className="h-5 w-5 mr-2" /> Buscar
             </button>
+            <Link 
+              to="/admin"
+              className="mt-2 py-3 flex items-center text-white hover:text-gold"
+              onClick={closeMenu}
+            >
+              <Settings className="h-5 w-5 mr-2" /> Área Administrativa
+            </Link>
           </nav>
         </div>
       )}
