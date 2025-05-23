@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { MapPin, Phone, Mail, Send } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
@@ -55,7 +54,7 @@ const Contact = () => {
   };
 
   const handleWhatsAppClick = () => {
-    const phoneNumber = "5511999999999"; // Replace with actual WhatsApp number
+    const phoneNumber = "5511950824205"; // Número correto do WhatsApp
     const message = "Olá! Gostaria de obter mais informações sobre os imóveis.";
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
@@ -71,7 +70,7 @@ const Contact = () => {
               ENTRE EM <span className="text-gold">CONTATO</span>
             </h1>
             <p className="text-gray-300 text-xl">
-              Estamos prontos para ajudá-lo na busca pelo imóvel dos seus sonhos.
+              Estamos prontos para ajudá-lo na busca pelo imóvel ideal para você e sua família.
             </p>
           </div>
         </div>
@@ -92,9 +91,8 @@ const Contact = () => {
                   <div>
                     <h3 className="text-white text-lg mb-1">Endereço</h3>
                     <p className="text-gray-300">
-                      Av. Paulista, 1000, Conjunto 1001<br />
-                      Bela Vista, São Paulo - SP<br />
-                      CEP: 01310-000
+                      Mogi das Cruzes, SP<br />
+                      Brasil
                     </p>
                   </div>
                 </div>
@@ -106,8 +104,7 @@ const Contact = () => {
                   <div>
                     <h3 className="text-white text-lg mb-1">Telefone</h3>
                     <p className="text-gray-300">
-                      (11) 3333-4444<br />
-                      (11) 99999-9999
+                      (11) 95082-4205
                     </p>
                     <button 
                       onClick={handleWhatsAppClick}
@@ -268,7 +265,7 @@ const Contact = () => {
                 <MapPin className="h-12 w-12 text-gold mx-auto mb-4" />
                 <p className="text-gray-300">
                   Mapa indisponível.<br />
-                  Visite-nos em Av. Paulista, 1000, Bela Vista, São Paulo - SP
+                  Visite-nos em Mogi das Cruzes, SP
                 </p>
               </div>
             </div>

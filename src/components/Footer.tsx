@@ -24,12 +24,12 @@ const Footer = () => {
               </div>
             </div>
             <p className="text-gray-400 text-sm">
-              Especializada em imóveis de alto padrão, terrenos, chácaras e 
-              imóveis residenciais para venda e aluguel.
+              Especializada em imóveis de todos os padrões, desde popular até alto padrão, 
+              incluindo terrenos, chácaras e imóveis residenciais para venda e aluguel.
             </p>
             <div className="mt-4 flex space-x-3">
               <a 
-                href="https://instagram.com" 
+                href="https://instagram.com/fernandes_imoveis13" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gold hover:text-gold-light transition-colors"
@@ -70,8 +70,8 @@ const Footer = () => {
             <h3 className="text-white font-semibold text-lg mb-4">Contato</h3>
             <ul className="space-y-2 text-gray-400 text-sm">
               <li>contato@fernandesimóveis.com.br</li>
-              <li>(11) 99999-9999</li>
-              <li>São Paulo, SP</li>
+              <li>(11) 95082-4205</li>
+              <li>Mogi das Cruzes, SP</li>
             </ul>
           </div>
         </div>
