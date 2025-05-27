@@ -86,8 +86,8 @@ const PropertyForm = () => {
           images: images,
           property_type: data.property_type,
           transaction_type: data.transaction_type,
-          featured: data.featured,
-          sold: data.sold
+          featured: data.featured || false,
+          sold: data.sold || false
         });
       }
     } catch (err) {
@@ -118,6 +118,7 @@ const PropertyForm = () => {
   };
 
   const handleImagesChange = (images: string[]) => {
+    console.log('Images updated:', images.length);
     setFormData(prev => ({ ...prev, images }));
   };
   
@@ -133,15 +134,21 @@ const PropertyForm = () => {
       toast.error('Por favor, adicione pelo menos uma imagem do imóvel');
       return;
     }
+
+    if (formData.bedrooms < 0 || formData.area <= 0) {
+      toast.error('Por favor, insira valores válidos para quartos e área');
+      return;
+    }
     
     try {
       setIsSaving(true);
+      console.log('Saving property with data:', formData);
       
       const propertyData = {
-        title: formData.title,
-        description: formData.description,
+        title: formData.title.trim(),
+        description: formData.description.trim(),
         price: parseFloat(formData.price),
-        location: formData.location,
+        location: formData.location.trim(),
         bedrooms: formData.bedrooms,
         area: formData.area,
         image_url: formData.images[0], // Use first image as main image for backward compatibility
@@ -150,6 +157,8 @@ const PropertyForm = () => {
         featured: formData.featured,
         sold: formData.sold
       };
+      
+      console.log('Property data to save:', propertyData);
       
       let result;
       
@@ -168,7 +177,7 @@ const PropertyForm = () => {
       
       if (error) {
         console.error('Erro ao salvar imóvel:', error);
-        toast.error(`Erro ao ${isEditMode ? 'atualizar' : 'criar'} o imóvel`);
+        toast.error(`Erro ao ${isEditMode ? 'atualizar' : 'criar'} o imóvel: ${error.message}`);
       } else {
         toast.success(`Imóvel ${isEditMode ? 'atualizado' : 'criado'} com sucesso!`);
         navigate('/admin/properties');
@@ -295,13 +304,13 @@ const PropertyForm = () => {
                 />
               </div>
               
-              <div>
+              <div className="md:col-span-2">
                 <label htmlFor="area" className="block text-sm text-gold mb-2">Área (m²) *</label>
                 <input
                   id="area"
                   name="area"
                   type="number"
-                  min="0"
+                  min="1"
                   value={formData.area}
                   onChange={handleChange}
                   className="w-full p-3 bg-dark border border-gold/30 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-gold/50"
@@ -314,6 +323,7 @@ const PropertyForm = () => {
                   images={formData.images}
                   onImagesChange={handleImagesChange}
                   propertyTitle={formData.title || "Imóvel"}
+                  maxImages={10}
                 />
                 {formData.images.length === 0 && (
                   <p className="text-red-400 text-sm mt-2">* Adicione pelo menos uma imagem</p>
@@ -344,7 +354,7 @@ const PropertyForm = () => {
                     name="featured"
                     type="checkbox"
                     checked={formData.featured}
-                    onChange={(e) => setFormData({...formData, featured: e.target.checked})}
+                    onChange={handleChange}
                     className="h-4 w-4 text-gold border-gold/30 focus:ring-gold"
                   />
                   <label htmlFor="featured" className="ml-2 text-white">Destaque</label>
@@ -356,7 +366,7 @@ const PropertyForm = () => {
                     name="sold"
                     type="checkbox"
                     checked={formData.sold}
-                    onChange={(e) => setFormData({...formData, sold: e.target.checked})}
+                    onChange={handleChange}
                     className="h-4 w-4 text-gold border-gold/30 focus:ring-gold"
                   />
                   <label htmlFor="sold" className="ml-2 text-white">Vendido</label>
