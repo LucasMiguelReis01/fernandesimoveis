@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, RouterProvider } from "react-router-dom";
 import Index from "./pages/Index";
 import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
@@ -16,6 +16,8 @@ import WhatsAppButton from "./components/WhatsAppButton";
 import AdminLogin from "./components/AdminLogin";
 import AdminProperties from "./pages/admin/AdminProperties";
 import PropertyForm from "./pages/admin/PropertyForm";
+import { SpeedInsights } from "@vercel/speed-insights/react"
+
 
 const queryClient = new QueryClient();
 
@@ -39,27 +41,31 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <div className="flex flex-col min-h-screen bg-dark text-white">
-          <Routes>
-            {/* Admin Routes */}
-            <Route path="/admin" element={<AdminLayout><AdminLogin /></AdminLayout>} />
-            <Route path="/admin/properties" element={<AdminLayout><AdminProperties /></AdminLayout>} />
-            <Route path="/admin/property/new" element={<AdminLayout><PropertyForm /></AdminLayout>} />
-            <Route path="/admin/property/edit/:id" element={<AdminLayout><PropertyForm /></AdminLayout>} />
-            
-            {/* Standard Routes */}
-            <Route path="/" element={<StandardLayout><Index /></StandardLayout>} />
-            <Route path="/properties" element={<StandardLayout><Properties /></StandardLayout>} />
-            <Route path="/property/:id" element={<StandardLayout><PropertyDetail /></StandardLayout>} />
-            <Route path="/about" element={<StandardLayout><About /></StandardLayout>} />
-            <Route path="/contact" element={<StandardLayout><Contact /></StandardLayout>} />
-            <Route path="*" element={<StandardLayout><NotFound /></StandardLayout>} />
-          </Routes>
-        </div>
-      </BrowserRouter>
+     <BrowserRouter>
+  <div className="flex flex-col min-h-screen bg-dark text-white">
+    <SpeedInsights />
+    <Routes>
+      {/* Admin Routes */}
+      <Route path="/admin" element={<AdminLayout><AdminLogin /></AdminLayout>} />
+      <Route path="/admin/properties" element={<AdminLayout><AdminProperties /></AdminLayout>} />
+      <Route path="/admin/property/new" element={<AdminLayout><PropertyForm /></AdminLayout>} />
+      <Route path="/admin/property/edit/:id" element={<AdminLayout><PropertyForm /></AdminLayout>} />
+      
+      {/* Standard Routes */}
+      <Route path="/" element={<StandardLayout><Index /></StandardLayout>} />
+      <Route path="/properties" element={<StandardLayout><Properties /></StandardLayout>} />
+      <Route path="/property/:id" element={<StandardLayout><PropertyDetail /></StandardLayout>} />
+      <Route path="/about" element={<StandardLayout><About /></StandardLayout>} />
+      <Route path="/contact" element={<StandardLayout><Contact /></StandardLayout>} />
+      <Route path="*" element={<StandardLayout><NotFound /></StandardLayout>} />
+    </Routes>
+  </div>
+</BrowserRouter>
+
     </TooltipProvider>
   </QueryClientProvider>
 );
 
 export default App;
+
+
