@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
 import { PropertyType } from '@/components/PropertyCard';
-import ImageUpload from '@/components/ImageUpload';
+import ImageGalleryManager from '@/components/ImageGalleryManager';
 
 const PropertyForm = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,7 +21,7 @@ const PropertyForm = () => {
     location: '',
     bedrooms: 1,
     area: 0,
-    image_url: '',
+    images: [] as string[],
     property_type: 'casa',
     transaction_type: 'Venda',
     featured: false,
@@ -73,6 +73,9 @@ const PropertyForm = () => {
         toast.error('Não foi possível carregar os detalhes do imóvel.');
         navigate('/admin/properties');
       } else if (data) {
+        // Parse images from image_url (for backward compatibility)
+        const images = data.image_url ? [data.image_url] : [];
+        
         setFormData({
           title: data.title,
           description: data.description,
@@ -80,7 +83,7 @@ const PropertyForm = () => {
           location: data.location,
           bedrooms: data.bedrooms,
           area: data.area,
-          image_url: data.image_url,
+          images: images,
           property_type: data.property_type,
           transaction_type: data.transaction_type,
           featured: data.featured,
@@ -114,15 +117,20 @@ const PropertyForm = () => {
     }
   };
 
-  const handleImageChange = (imageUrl: string) => {
-    setFormData(prev => ({ ...prev, image_url: imageUrl }));
+  const handleImagesChange = (images: string[]) => {
+    setFormData(prev => ({ ...prev, images }));
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.description || !formData.price || !formData.location || !formData.image_url) {
+    if (!formData.title || !formData.description || !formData.price || !formData.location) {
       toast.error('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
+    if (formData.images.length === 0) {
+      toast.error('Por favor, adicione pelo menos uma imagem do imóvel');
       return;
     }
     
@@ -130,8 +138,17 @@ const PropertyForm = () => {
       setIsSaving(true);
       
       const propertyData = {
-        ...formData,
-        price: parseFloat(formData.price)
+        title: formData.title,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        location: formData.location,
+        bedrooms: formData.bedrooms,
+        area: formData.area,
+        image_url: formData.images[0], // Use first image as main image for backward compatibility
+        property_type: formData.property_type,
+        transaction_type: formData.transaction_type,
+        featured: formData.featured,
+        sold: formData.sold
       };
       
       let result;
@@ -293,12 +310,17 @@ const PropertyForm = () => {
               </div>
               
               <div className="md:col-span-2">
-                <label className="block text-sm text-gold mb-2">Imagem do Imóvel *</label>
-                <ImageUpload
-                  value={formData.image_url}
-                  onChange={handleImageChange}
-                  placeholder="Selecionar imagem"
+                <ImageGalleryManager
+                  images={formData.images}
+                  onImagesChange={handleImagesChange}
+                  propertyTitle={formData.title || "Imóvel"}
                 />
+                {formData.images.length === 0 && (
+                  <p className="text-red-400 text-sm mt-2">* Adicione pelo menos uma imagem</p>
+                )}
+                <p className="text-gray-400 text-sm mt-2">
+                  Máximo de 10 imagens por imóvel. A primeira imagem será a principal.
+                </p>
               </div>
               
               <div className="md:col-span-2">
