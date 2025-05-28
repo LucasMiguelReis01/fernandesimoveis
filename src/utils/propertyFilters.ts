@@ -1,66 +1,80 @@
 
 import { PropertyType } from '@/components/PropertyCard';
 
-export const priceRangeMap: Record<string, [number, number]> = {
-  'ate500': [0, 500000],
-  '500a1m': [500000, 1000000],
-  '1ma2m': [1000000, 2000000],
-  'acima2m': [2000000, Infinity]
-};
-
-export const filterProperties = (properties: PropertyType[], filters: {
+interface FilterOptions {
   transactionType: string;
   propertyType: string;
   priceRange: string;
   city: string;
-}) => {
+  code?: string;
+}
+
+export const filterProperties = (properties: PropertyType[], filters: FilterOptions): PropertyType[] => {
   return properties.filter(property => {
-    // Filtrar por tipo de transação
-    if (filters.transactionType !== 'todos') {
-      const transactionType = property.transaction_type || property.type || '';
-      if (filters.transactionType === 'comprar' && transactionType !== 'Venda') return false;
-      if (filters.transactionType === 'alugar' && transactionType !== 'Aluguel') return false;
+    // Code filter (highest priority - if code is provided, search by code only)
+    if (filters.code && filters.code.trim() !== '') {
+      const searchCode = filters.code.toLowerCase().trim();
+      const propertyCode = (property as any).code?.toLowerCase() || '';
+      return propertyCode.includes(searchCode);
     }
-    
-    // Filtrar por tipo de propriedade
-    if (filters.propertyType !== 'todos') {
-      const propertyType = property.property_type || '';
-      if (filters.propertyType.toLowerCase() !== propertyType.toLowerCase()) return false;
+
+    // Transaction type filter
+    if (filters.transactionType !== 'todos' && property.transaction_type !== filters.transactionType) {
+      return false;
     }
-    
-    // Filtrar por faixa de preço
+
+    // Property type filter
+    if (filters.propertyType !== 'todos' && property.property_type !== filters.propertyType) {
+      return false;
+    }
+
+    // City filter
+    if (filters.city && !property.location.toLowerCase().includes(filters.city.toLowerCase())) {
+      return false;
+    }
+
+    // Price range filter
     if (filters.priceRange !== 'todos') {
-      const priceValue = typeof property.price === 'string' ? parseFloat(property.price.replace(/\D+/g, '')) : property.price;
-      const [minPrice, maxPrice] = priceRangeMap[filters.priceRange] || [0, Infinity];
+      const price = typeof property.price === 'number' ? property.price : parseFloat(property.price.toString());
       
-      if (priceValue < minPrice || priceValue > maxPrice) {
-        return false;
+      switch (filters.priceRange) {
+        case 'ate500':
+          if (price > 500000) return false;
+          break;
+        case '500a1m':
+          if (price <= 500000 || price > 1000000) return false;
+          break;
+        case '1ma2m':
+          if (price <= 1000000 || price > 2000000) return false;
+          break;
+        case 'acima2m':
+          if (price <= 2000000) return false;
+          break;
       }
     }
-    
-    // Filtrar por cidade
-    if (filters.city) {
-      const locationLower = property.location.toLowerCase();
-      if (!locationLower.includes(filters.city.toLowerCase())) {
-        return false;
-      }
-    }
-    
+
     return true;
   });
 };
 
-export const sortProperties = (properties: PropertyType[], sortBy: string) => {
-  return [...properties].sort((a, b) => {
-    const priceA = typeof a.price === 'string' ? parseFloat(a.price.replace(/\D+/g, '')) : a.price;
-    const priceB = typeof b.price === 'string' ? parseFloat(b.price.replace(/\D+/g, '')) : b.price;
-    
-    if (sortBy === 'lowPrice') {
-      return priceA - priceB;
-    } else if (sortBy === 'highPrice') {
-      return priceB - priceA;
-    }
-    // Default para recentes (sem ordenação necessária, pois já estão ordenados por recência)
-    return 0;
-  });
+export const sortProperties = (properties: PropertyType[], sortBy: string): PropertyType[] => {
+  const sortedProperties = [...properties];
+  
+  switch (sortBy) {
+    case 'price-asc':
+      return sortedProperties.sort((a, b) => {
+        const priceA = typeof a.price === 'number' ? a.price : parseFloat(a.price.toString());
+        const priceB = typeof b.price === 'number' ? b.price : parseFloat(b.price.toString());
+        return priceA - priceB;
+      });
+    case 'price-desc':
+      return sortedProperties.sort((a, b) => {
+        const priceA = typeof a.price === 'number' ? a.price : parseFloat(a.price.toString());
+        const priceB = typeof b.price === 'number' ? b.price : parseFloat(b.price.toString());
+        return priceB - priceA;
+      });
+    case 'recent':
+    default:
+      return sortedProperties;
+  }
 };

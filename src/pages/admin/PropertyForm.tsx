@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -15,6 +14,7 @@ const PropertyForm = () => {
   const [isSaving, setIsSaving] = useState(false);
   
   const [formData, setFormData] = useState({
+    code: '',
     title: '',
     description: '',
     price: '',
@@ -77,6 +77,7 @@ const PropertyForm = () => {
         const images = data.image_url ? [data.image_url] : [];
         
         setFormData({
+          code: data.code || '',
           title: data.title,
           description: data.description,
           price: data.price.toString(),
@@ -125,7 +126,7 @@ const PropertyForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.description || !formData.price || !formData.location) {
+    if (!formData.code || !formData.title || !formData.description || !formData.price || !formData.location) {
       toast.error('Por favor, preencha todos os campos obrigatórios');
       return;
     }
@@ -144,7 +145,22 @@ const PropertyForm = () => {
       setIsSaving(true);
       console.log('Saving property with data:', formData);
       
+      // Check if code is unique (only for new properties or when code changed)
+      if (!isEditMode || formData.code !== (await getCurrentPropertyCode())) {
+        const { data: existingProperty } = await supabase
+          .from('properties')
+          .select('id')
+          .eq('code', formData.code.trim())
+          .single();
+        
+        if (existingProperty) {
+          toast.error('Este código já está sendo usado por outro imóvel');
+          return;
+        }
+      }
+      
       const propertyData = {
+        code: formData.code.trim(),
         title: formData.title.trim(),
         description: formData.description.trim(),
         price: parseFloat(formData.price),
@@ -177,7 +193,11 @@ const PropertyForm = () => {
       
       if (error) {
         console.error('Erro ao salvar imóvel:', error);
-        toast.error(`Erro ao ${isEditMode ? 'atualizar' : 'criar'} o imóvel: ${error.message}`);
+        if (error.code === '23505' && error.message.includes('properties_code_unique')) {
+          toast.error('Este código já está sendo usado por outro imóvel');
+        } else {
+          toast.error(`Erro ao ${isEditMode ? 'atualizar' : 'criar'} o imóvel: ${error.message}`);
+        }
       } else {
         toast.success(`Imóvel ${isEditMode ? 'atualizado' : 'criado'} com sucesso!`);
         navigate('/admin/properties');
@@ -188,6 +208,16 @@ const PropertyForm = () => {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const getCurrentPropertyCode = async () => {
+    if (!isEditMode || !id) return '';
+    const { data } = await supabase
+      .from('properties')
+      .select('code')
+      .eq('id', id)
+      .single();
+    return data?.code || '';
   };
   
   if (isLoading) {
@@ -210,6 +240,23 @@ const PropertyForm = () => {
         <div className="bg-dark-light border border-gold/20 rounded-lg p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="code" className="block text-sm text-gold mb-2">Código do Imóvel *</label>
+                <input
+                  id="code"
+                  name="code"
+                  type="text"
+                  value={formData.code}
+                  onChange={handleChange}
+                  className="w-full p-3 bg-dark border border-gold/30 rounded-lg text-white focus:outline-none focus:ring-1 focus:ring-gold/50"
+                  placeholder="Ex: FI-001, CASA-123"
+                  required
+                />
+                <small className="text-gray-400 mt-1">
+                  Este código deve ser único para cada imóvel
+                </small>
+              </div>
+              
               <div>
                 <label htmlFor="title" className="block text-sm text-gold mb-2">Título *</label>
                 <input

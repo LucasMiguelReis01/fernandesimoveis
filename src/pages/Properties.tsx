@@ -16,7 +16,8 @@ const Properties = () => {
     transactionType: 'todos',
     propertyType: 'todos',
     priceRange: 'todos',
-    city: ''
+    city: '',
+    code: ''
   });
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +33,8 @@ const Properties = () => {
         transactionType: locationState.transactionType || prev.transactionType,
         propertyType: locationState.propertyType || prev.propertyType,
         priceRange: locationState.priceRange || prev.priceRange,
-        city: locationState.city || prev.city
+        city: locationState.city || prev.city,
+        code: locationState.code || prev.code
       }));
     }
 
@@ -65,7 +67,8 @@ const Properties = () => {
             featured: item.featured,
             sold: item.sold,
             property_type: item.property_type,
-            description: item.description
+            description: item.description,
+            code: item.code
           }));
           setProperties(formattedData);
         }
@@ -90,7 +93,8 @@ const Properties = () => {
       transactionType: 'todos',
       propertyType: 'todos',
       priceRange: 'todos',
-      city: ''
+      city: '',
+      code: ''
     });
   };
 

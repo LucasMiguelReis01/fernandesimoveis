@@ -40,6 +40,7 @@ export type Database = {
         Row: {
           area: number
           bedrooms: number
+          code: string
           created_at: string | null
           description: string
           featured: boolean | null
@@ -56,6 +57,7 @@ export type Database = {
         Insert: {
           area: number
           bedrooms: number
+          code: string
           created_at?: string | null
           description: string
           featured?: boolean | null
@@ -72,6 +74,7 @@ export type Database = {
         Update: {
           area?: number
           bedrooms?: number
+          code?: string
           created_at?: string | null
           description?: string
           featured?: boolean | null
