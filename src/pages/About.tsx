@@ -27,37 +27,24 @@ const About = () => {
       {/* Our Story */}
       <section className="py-16 bg-dark">
         <div className="container mx-auto px-4 md:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-white text-3xl mb-6">
-                Nossa <span className="text-gold">História</span>
-              </h2>
-              <p className="text-gray-300 mb-4">
-                A Fernandes Imóveis foi fundada em 2020 com o objetivo de oferecer um serviço imobiliário 
-                diferenciado, trabalhando com todos os tipos de imóveis e focando no atendimento personalizado 
-                aos clientes mais exigentes.
-              </p>
-              <p className="text-gray-300 mb-4">
-                Com experiência crescente no mercado, nos especializamos em entender as necessidades 
-                específicas de cada cliente, proporcionando uma experiência exclusiva na busca pelo imóvel perfeito, 
-                seja ele residencial, comercial ou de qualquer categoria.
-              </p>
-              <p className="text-gray-300">
-                Nossa missão é transformar o processo de compra, venda ou locação de imóveis em uma experiência 
-                agradável e segura, garantindo o melhor negócio para nossos clientes em todos os segmentos do mercado.
-              </p>
-            </div>
-            <div className="relative">
-              <div className="aspect-w-4 aspect-h-3 rounded-xl overflow-hidden">
-                <img 
-                  src="https://images.unsplash.com/photo-1460574283810-2aab119d8511" 
-                  alt="Edifício moderno" 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-gold/20 rounded-full"></div>
-              <div className="absolute -top-6 -right-6 w-24 h-24 bg-gold/20 rounded-full"></div>
-            </div>
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-white text-3xl mb-6">
+              Nossa <span className="text-gold">História</span>
+            </h2>
+            <p className="text-gray-300 mb-4">
+              A Fernandes Imóveis foi fundada em 2020 com o objetivo de oferecer um serviço imobiliário 
+              diferenciado, trabalhando com todos os tipos de imóveis e focando no atendimento personalizado 
+              aos clientes mais exigentes.
+            </p>
+            <p className="text-gray-300 mb-4">
+              Com experiência crescente no mercado, nos especializamos em entender as necessidades 
+              específicas de cada cliente, proporcionando uma experiência exclusiva na busca pelo imóvel perfeito, 
+              seja ele residencial, comercial ou de qualquer categoria.
+            </p>
+            <p className="text-gray-300">
+              Nossa missão é transformar o processo de compra, venda ou locação de imóveis em uma experiência 
+              agradável e segura, garantindo o melhor negócio para nossos clientes em todos os segmentos do mercado.
+            </p>
           </div>
           
           {/* Logo Section */}
@@ -89,16 +76,16 @@ const About = () => {
             <div className="glass-dark p-8 rounded-xl">
               <h3 className="text-gold text-xl mb-4">Missão</h3>
               <p className="text-gray-300">
-                Oferecer soluções imobiliárias de excelência para todos os tipos de imóveis, 
-                garantindo a satisfação e superando as expectativas de nossos clientes.
+                Facilitar a realização do sonho da casa própria através de um atendimento personalizado 
+                e transparente, conectando pessoas aos imóveis ideais com segurança e confiança.
               </p>
             </div>
             
             <div className="glass-dark p-8 rounded-xl">
               <h3 className="text-gold text-xl mb-4">Visão</h3>
               <p className="text-gray-300">
-                Ser referência no mercado imobiliário, reconhecida pela excelência 
-                no atendimento e pela qualidade dos imóveis ofertados em todo o território nacional.
+                Ser a imobiliária de referência na região, reconhecida pela excelência no atendimento, 
+                inovação tecnológica e compromisso com a satisfação total dos nossos clientes.
               </p>
             </div>
             
@@ -107,11 +94,11 @@ const About = () => {
               <ul className="text-gray-300 space-y-2">
                 <li className="flex items-center">
                   <span className="w-2 h-2 bg-gold rounded-full mr-2"></span>
-                  Ética e Transparência
+                  Transparência e Honestidade
                 </li>
                 <li className="flex items-center">
                   <span className="w-2 h-2 bg-gold rounded-full mr-2"></span>
-                  Excelência em Atendimento
+                  Atendimento Humanizado
                 </li>
                 <li className="flex items-center">
                   <span className="w-2 h-2 bg-gold rounded-full mr-2"></span>
@@ -119,7 +106,7 @@ const About = () => {
                 </li>
                 <li className="flex items-center">
                   <span className="w-2 h-2 bg-gold rounded-full mr-2"></span>
-                  Inovação e Adaptabilidade
+                  Agilidade e Eficiência
                 </li>
               </ul>
             </div>
@@ -132,65 +119,30 @@ const About = () => {
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center mb-12">
             <h2 className="text-white text-3xl mb-6">
-              Nosso <span className="text-gold">Time</span>
+              Nossa <span className="text-gold">Fundadora</span>
             </h2>
             <p className="text-gray-300 max-w-3xl mx-auto">
-              Conheça nossa equipe de profissionais, especialistas em todos os tipos de imóveis e 
-              comprometidos com sua satisfação.
+              Conheça a profissional por trás da Fernandes Imóveis, especialista em todos os tipos de imóveis e 
+              comprometida com sua satisfação.
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="max-w-md mx-auto">
             <div className="glass-dark rounded-xl overflow-hidden group">
               <div className="aspect-w-3 aspect-h-4">
                 <img 
-                  src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHByb2ZpbGV8ZW58MHx8MHx8fDA%3D" 
-                  alt="Roberto Fernandes" 
+                  src="https://images.unsplash.com/photo-1494790108755-2616b612b993?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8cHJvZmlsZSUyMHdvbWFufGVufDB8fDB8fHww" 
+                  alt="Inácia Fernandes" 
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
               </div>
               <div className="p-6">
-                <h3 className="text-white text-xl mb-1">Roberto Fernandes</h3>
-                <p className="text-gold text-sm mb-3">Fundador e CEO</p>
+                <h3 className="text-white text-xl mb-1">Inácia Fernandes</h3>
+                <p className="text-gold text-sm mb-3">Fundadora, CEO e Corretora</p>
                 <p className="text-gray-400">
-                  Com mais de 20 anos no mercado imobiliário, Roberto fundou a Fernandes Imóveis 
-                  com a visão de transformar o segmento de alto padrão.
-                </p>
-              </div>
-            </div>
-            
-            <div className="glass-dark rounded-xl overflow-hidden group">
-              <div className="aspect-w-3 aspect-h-4">
-                <img 
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8cHJvZmlsZSUyMHdvbWFufGVufDB8fDB8fHww" 
-                  alt="Márcia Santos" 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="text-white text-xl mb-1">Márcia Santos</h3>
-                <p className="text-gold text-sm mb-3">Diretora de Vendas</p>
-                <p className="text-gray-400">
-                  Especialista em negociações de alto valor, Márcia lidera nossa equipe de vendas 
-                  com foco em resultados e satisfação do cliente.
-                </p>
-              </div>
-            </div>
-            
-            <div className="glass-dark rounded-xl overflow-hidden group">
-              <div className="aspect-w-3 aspect-h-4">
-                <img 
-                  src="https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTh8fHByb2ZpbGUlMjBtYW58ZW58MHx8MHx8fDA%3D" 
-                  alt="André Mendes" 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className="text-white text-xl mb-1">André Mendes</h3>
-                <p className="text-gold text-sm mb-3">Consultor de Imóveis</p>
-                <p className="text-gray-400">
-                  Com amplo conhecimento do mercado de luxo, André é especialista em 
-                  encontrar o imóvel perfeito para cada cliente.
+                  Com mais de 5 anos de experiência no mercado imobiliário, Inácia fundou a Fernandes Imóveis 
+                  com o objetivo de oferecer um atendimento diferenciado e personalizado, sempre focando 
+                  nas necessidades específicas de cada cliente para encontrar o imóvel ideal.
                 </p>
               </div>
             </div>
