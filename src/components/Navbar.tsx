@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Search, Settings } from 'lucide-react';
+import { Menu, X, Settings } from 'lucide-react';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -70,12 +70,6 @@ const Navbar = () => {
                 {item.name}
               </Link>
             ))}
-            <button 
-              aria-label="Search" 
-              className="p-2 rounded-full hover:bg-dark-lighter transition-colors"
-            >
-              <Search className="h-5 w-5 text-gold" />
-            </button>
             <Link 
               to="/admin"
               aria-label="Admin" 
@@ -119,12 +113,6 @@ const Navbar = () => {
                 {item.name}
               </Link>
             ))}
-            <button 
-              aria-label="Search" 
-              className="mt-2 py-3 flex items-center text-white hover:text-gold"
-            >
-              <Search className="h-5 w-5 mr-2" /> Buscar
-            </button>
             <Link 
               to="/admin"
               className="mt-2 py-3 flex items-center text-white hover:text-gold"

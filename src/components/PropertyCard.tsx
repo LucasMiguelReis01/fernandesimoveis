@@ -17,6 +17,7 @@ export interface PropertyType {
   sold?: boolean;
   property_type?: string;
   description?: string;
+  code?: string;
 }
 
 interface PropertyCardProps {
@@ -87,6 +88,15 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
           <div className="absolute top-3 left-3">
             <span className="bg-red-600 px-3 py-1 text-xs font-medium text-white rounded">
               Vendido
+            </span>
+          </div>
+        )}
+
+        {/* Código do imóvel sempre visível */}
+        {property.code && (
+          <div className="absolute bottom-3 left-3">
+            <span className="bg-dark/80 backdrop-blur-sm px-2 py-1 text-xs font-medium text-gold rounded border border-gold/30">
+              {property.code}
             </span>
           </div>
         )}

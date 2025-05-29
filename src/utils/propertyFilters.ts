@@ -14,7 +14,7 @@ export const filterProperties = (properties: PropertyType[], filters: FilterOpti
     // Code filter (highest priority - if code is provided, search by code only)
     if (filters.code && filters.code.trim() !== '') {
       const searchCode = filters.code.toLowerCase().trim();
-      const propertyCode = (property as any).code?.toLowerCase() || '';
+      const propertyCode = property.code?.toLowerCase() || '';
       return propertyCode.includes(searchCode);
     }
 
