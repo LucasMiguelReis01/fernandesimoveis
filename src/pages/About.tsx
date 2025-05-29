@@ -18,7 +18,7 @@ const About = () => {
               SOBRE A <span className="text-gold">FERNANDES IMÓVEIS</span>
             </h1>
             <p className="text-gray-300 text-xl">
-              Especialistas em imóveis de alto padrão com foco em excelência e atendimento personalizado.
+              Especialistas em todos os tipos de imóveis com foco em excelência e atendimento personalizado.
             </p>
           </div>
         </div>
@@ -33,17 +33,18 @@ const About = () => {
                 Nossa <span className="text-gold">História</span>
               </h2>
               <p className="text-gray-300 mb-4">
-                A Fernandes Imóveis foi fundada em 2005 com o objetivo de oferecer um serviço imobiliário 
-                diferenciado, focado em imóveis de alto padrão e no atendimento personalizado aos clientes 
-                mais exigentes.
+                A Fernandes Imóveis foi fundada em 2020 com o objetivo de oferecer um serviço imobiliário 
+                diferenciado, trabalhando com todos os tipos de imóveis e focando no atendimento personalizado 
+                aos clientes mais exigentes.
               </p>
               <p className="text-gray-300 mb-4">
-                Com mais de 15 anos de experiência no mercado, nos especializamos em entender as necessidades 
-                específicas de cada cliente, proporcionando uma experiência exclusiva na busca pelo imóvel perfeito.
+                Com experiência crescente no mercado, nos especializamos em entender as necessidades 
+                específicas de cada cliente, proporcionando uma experiência exclusiva na busca pelo imóvel perfeito, 
+                seja ele residencial, comercial ou de qualquer categoria.
               </p>
               <p className="text-gray-300">
                 Nossa missão é transformar o processo de compra, venda ou locação de imóveis em uma experiência 
-                agradável e segura, garantindo o melhor negócio para nossos clientes.
+                agradável e segura, garantindo o melhor negócio para nossos clientes em todos os segmentos do mercado.
               </p>
             </div>
             <div className="relative">
@@ -56,6 +57,17 @@ const About = () => {
               </div>
               <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-gold/20 rounded-full"></div>
               <div className="absolute -top-6 -right-6 w-24 h-24 bg-gold/20 rounded-full"></div>
+            </div>
+          </div>
+          
+          {/* Logo Section */}
+          <div className="flex justify-center mt-16">
+            <div className="bg-dark-lighter p-8 rounded-xl border border-gold/30">
+              <img 
+                src="/lovable-uploads/26864e40-d0ce-47e4-a4ac-391dc0e36082.png" 
+                alt="Logo Fernandes Imóveis" 
+                className="h-32 w-32 object-contain mx-auto"
+              />
             </div>
           </div>
         </div>
@@ -77,7 +89,7 @@ const About = () => {
             <div className="glass-dark p-8 rounded-xl">
               <h3 className="text-gold text-xl mb-4">Missão</h3>
               <p className="text-gray-300">
-                Oferecer soluções imobiliárias de excelência, com foco em imóveis de alto padrão, 
+                Oferecer soluções imobiliárias de excelência para todos os tipos de imóveis, 
                 garantindo a satisfação e superando as expectativas de nossos clientes.
               </p>
             </div>
@@ -85,7 +97,7 @@ const About = () => {
             <div className="glass-dark p-8 rounded-xl">
               <h3 className="text-gold text-xl mb-4">Visão</h3>
               <p className="text-gray-300">
-                Ser referência no mercado imobiliário de alto padrão, reconhecida pela excelência 
+                Ser referência no mercado imobiliário, reconhecida pela excelência 
                 no atendimento e pela qualidade dos imóveis ofertados em todo o território nacional.
               </p>
             </div>
@@ -123,7 +135,7 @@ const About = () => {
               Nosso <span className="text-gold">Time</span>
             </h2>
             <p className="text-gray-300 max-w-3xl mx-auto">
-              Conheça nossa equipe de profissionais, especialistas em imóveis de alto padrão e 
+              Conheça nossa equipe de profissionais, especialistas em todos os tipos de imóveis e 
               comprometidos com sua satisfação.
             </p>
           </div>
