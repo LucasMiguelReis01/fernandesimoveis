@@ -1,5 +1,4 @@
-
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, lazy, Suspense } from 'react';
 import { Wrapper, Status } from '@googlemaps/react-wrapper';
 
 interface GoogleMapProps {
@@ -13,9 +12,29 @@ const MapComponent: React.FC<{ location: string; zoom: number }> = ({ location, 
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [marker, setMarker] = useState<google.maps.Marker | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Intersection Observer para lazy loading
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (mapRef.current) {
+      observer.observe(mapRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !isVisible) return;
 
     const initMap = async () => {
       try {
@@ -137,19 +156,25 @@ const MapComponent: React.FC<{ location: string; zoom: number }> = ({ location, 
       }
     };
 
-    initMap();
+    const timer = setTimeout(initMap, 100); // Pequeno delay para melhor performance
 
     return () => {
+      clearTimeout(timer);
       if (marker) {
         marker.setMap(null);
       }
-      if (map) {
-        // Cleanup map if needed
-      }
     };
-  }, [location, zoom]);
+  }, [location, zoom, isVisible]);
 
-  return <div ref={mapRef} className="w-full h-full rounded-lg" />;
+  return (
+    <div ref={mapRef} className="w-full h-full rounded-lg">
+      {!isVisible && (
+        <div className="w-full h-full bg-gray-800 rounded-lg flex items-center justify-center">
+          <div className="text-gray-400">Carregando mapa...</div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 const render = (status: Status) => {

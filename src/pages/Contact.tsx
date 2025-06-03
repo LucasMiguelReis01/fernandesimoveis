@@ -54,7 +54,7 @@ const Contact = () => {
   };
 
   const handleWhatsAppClick = () => {
-    const phoneNumber = "5511950824205"; // Número correto do WhatsApp
+    const phoneNumber = "5511950824205";
     const message = "Olá! Gostaria de obter mais informações sobre os imóveis.";
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
@@ -122,8 +122,7 @@ const Contact = () => {
                   <div>
                     <h3 className="text-white text-lg mb-1">E-mail</h3>
                     <p className="text-gray-300">
-                      contato@fernandesimóveis.com.br<br />
-                      vendas@fernandesimóveis.com.br
+                      Fernandesimoveis1010@gmail.com
                     </p>
                   </div>
                 </div>
@@ -259,7 +258,6 @@ const Contact = () => {
           </div>
           
           <div className="w-full h-[400px] bg-gray-800 rounded-xl overflow-hidden">
-            {/* In a real application, this would be a Google Maps iframe */}
             <div className="w-full h-full flex items-center justify-center bg-dark-lighter">
               <div className="text-center">
                 <MapPin className="h-12 w-12 text-gold mx-auto mb-4" />

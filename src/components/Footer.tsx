@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { Instagram } from 'lucide-react';
 
@@ -69,7 +68,7 @@ const Footer = () => {
           <div>
             <h3 className="text-white font-semibold text-lg mb-4">Contato</h3>
             <ul className="space-y-2 text-gray-400 text-sm">
-              <li>contato@fernandesimóveis.com.br</li>
+              <li>Fernandesimoveis1010@gmail.com</li>
               <li>(11) 95082-4205</li>
               <li>Mogi das Cruzes, SP</li>
             </ul>
