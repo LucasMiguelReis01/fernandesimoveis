@@ -85,18 +85,40 @@ const ImageGalleryManager = ({
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(false);
     handleFileSelect(e.dataTransfer.files);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(true);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(false);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const files = e.target.files;
+    if (files) {
+      handleFileSelect(files);
+    }
+    // Reset input value to allow selecting the same file again
+    if (e.target) {
+      e.target.value = '';
+    }
+  };
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    fileInputRef.current?.click();
   };
 
   const removeImage = (index: number) => {
@@ -151,6 +173,7 @@ const ImageGalleryManager = ({
         </div>
         {images.length > 0 && (
           <button
+            type="button"
             onClick={exportAllImages}
             className="flex items-center gap-2 bg-gold hover:bg-gold/80 text-dark px-4 py-2 rounded-md transition-colors"
           >
@@ -176,7 +199,8 @@ const ImageGalleryManager = ({
           <p className="text-white mb-2">Arraste e solte imagens aqui</p>
           <p className="text-gray-400 text-sm mb-4">ou</p>
           <button
-            onClick={() => fileInputRef.current?.click()}
+            type="button"
+            onClick={handleButtonClick}
             className="bg-gold hover:bg-gold/80 text-dark px-6 py-2 rounded-md transition-colors"
           >
             Selecionar Arquivos
@@ -192,7 +216,7 @@ const ImageGalleryManager = ({
             type="file"
             multiple
             accept="image/*"
-            onChange={(e) => handleFileSelect(e.target.files)}
+            onChange={handleInputChange}
             className="hidden"
           />
         </div>
@@ -216,6 +240,7 @@ const ImageGalleryManager = ({
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
                 {index > 0 && (
                   <button
+                    type="button"
                     onClick={() => moveImage(index, 0)}
                     className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors"
                     title="Tornar principal"
@@ -224,6 +249,7 @@ const ImageGalleryManager = ({
                   </button>
                 )}
                 <button
+                  type="button"
                   onClick={() => exportImage(imageUrl, index)}
                   className="p-2 bg-gold hover:bg-gold/80 text-dark rounded-full transition-colors"
                   title="Exportar imagem"
@@ -231,6 +257,7 @@ const ImageGalleryManager = ({
                   <Download className="h-4 w-4" />
                 </button>
                 <button
+                  type="button"
                   onClick={() => removeImage(index)}
                   className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-full transition-colors"
                   title="Remover imagem"
