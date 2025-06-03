@@ -77,6 +77,13 @@ const PropertyForm = () => {
         
         if (data.images && Array.isArray(data.images)) {
           images = data.images;
+        } else if (data.images && typeof data.images === 'object' && data.images !== null) {
+          // Handle JSONB array from database
+          try {
+            images = Array.isArray(data.images) ? data.images : [data.images];
+          } catch (e) {
+            images = data.image_url ? [data.image_url] : [];
+          }
         } else if (data.images && typeof data.images === 'string') {
           try {
             const parsed = JSON.parse(data.images);
@@ -178,7 +185,7 @@ const PropertyForm = () => {
         bedrooms: formData.bedrooms,
         area: formData.area,
         image_url: formData.images[0], // Use first image as main image
-        images: JSON.stringify(formData.images), // Store all images as JSON string
+        images: formData.images, // Store all images as JSONB array
         property_type: formData.property_type,
         transaction_type: formData.transaction_type,
         featured: formData.featured,

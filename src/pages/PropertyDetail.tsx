@@ -54,6 +54,13 @@ const PropertyDetail = () => {
           // Try to parse images from the images field first
           if (data.images && Array.isArray(data.images)) {
             images = data.images;
+          } else if (data.images && typeof data.images === 'object' && data.images !== null) {
+            // Handle JSONB array from database
+            try {
+              images = Array.isArray(data.images) ? data.images : [data.images];
+            } catch (e) {
+              images = data.image_url ? [data.image_url] : [];
+            }
           } else if (data.images && typeof data.images === 'string') {
             try {
               const parsed = JSON.parse(data.images);
@@ -113,7 +120,7 @@ const PropertyDetail = () => {
         const { error } = await supabase
           .from('properties')
           .update({ 
-            images: JSON.stringify(newImages),
+            images: newImages,
             image_url: newImages[0] || property.image_url // Keep first image as main
           })
           .eq('id', property.id);
