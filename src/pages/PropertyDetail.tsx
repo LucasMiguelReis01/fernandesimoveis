@@ -48,7 +48,31 @@ const PropertyDetail = () => {
           console.error('Erro ao buscar detalhes do imóvel:', error);
           setError('Não foi possível carregar os detalhes do imóvel.');
         } else if (data) {
-          // Formatar os dados para o formato esperado
+          // Parse images from images field or fallback to image_url
+          let images = [];
+          
+          // Try to parse images from the images field first
+          if (data.images && Array.isArray(data.images)) {
+            images = data.images;
+          } else if (data.images && typeof data.images === 'string') {
+            try {
+              const parsed = JSON.parse(data.images);
+              images = Array.isArray(parsed) ? parsed : [data.images];
+            } catch (e) {
+              images = [data.images];
+            }
+          }
+          
+          // If no images found, use image_url as fallback
+          if (images.length === 0 && data.image_url) {
+            images = [data.image_url];
+          }
+          
+          // Ensure we have at least one image
+          if (images.length === 0) {
+            images = ['/placeholder.svg'];
+          }
+
           const formattedProperty = {
             id: data.id,
             title: data.title,
@@ -58,14 +82,14 @@ const PropertyDetail = () => {
             location: data.location,
             bedrooms: data.bedrooms,
             area: data.area,
-            imageUrl: data.image_url,
-            image_url: data.image_url,
+            imageUrl: images[0],
+            image_url: images[0],
             featured: data.featured,
             sold: data.sold,
             property_type: data.property_type,
             description: data.description,
-            // Para demo, usando a mesma imagem repetida 3 vezes - em produção, isso viria do banco de dados
-            images: [data.image_url, data.image_url, data.image_url]
+            code: data.code,
+            images: images
           };
           setProperty(formattedProperty);
         } else {
@@ -82,12 +106,30 @@ const PropertyDetail = () => {
     fetchProperty();
   }, [id]);
 
-  const handleImagesChange = (newImages: string[]) => {
-    if (property) {
-      setProperty({
-        ...property,
-        images: newImages
-      });
+  const handleImagesChange = async (newImages: string[]) => {
+    if (property && isAdmin) {
+      try {
+        // Update the property in the database with new images
+        const { error } = await supabase
+          .from('properties')
+          .update({ 
+            images: JSON.stringify(newImages),
+            image_url: newImages[0] || property.image_url // Keep first image as main
+          })
+          .eq('id', property.id);
+
+        if (error) {
+          console.error('Erro ao atualizar imagens:', error);
+        } else {
+          setProperty({
+            ...property,
+            images: newImages,
+            image_url: newImages[0] || property.image_url
+          });
+        }
+      } catch (err) {
+        console.error('Erro ao salvar imagens:', err);
+      }
     }
   };
 
@@ -109,9 +151,27 @@ const PropertyDetail = () => {
 
   const handleWhatsAppClick = () => {
     const message = `Olá! Gostaria de obter mais informações sobre o imóvel: ${property?.title}`;
-    const phoneNumber = "5511950824205"; // Número formatado sem hífen ou espaços
+    const phoneNumber = "5511950824205";
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
+  };
+
+  const formatPrice = (price: string | number): string => {
+    if (typeof price === 'string' && price.includes('R$')) {
+      return price;
+    }
+    
+    const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
+    
+    if (isNaN(numericPrice)) {
+      return 'Preço sob consulta';
+    }
+    
+    if (numericPrice < 1000) {
+      return `R$ ${numericPrice.toLocaleString('pt-BR')}/mês`;
+    }
+    
+    return `R$ ${numericPrice.toLocaleString('pt-BR')}`;
   };
 
   if (loading) {
@@ -137,25 +197,6 @@ const PropertyDetail = () => {
       </div>
     );
   }
-
-  const formatPrice = (price: string | number): string => {
-    if (typeof price === 'string' && price.includes('R$')) {
-      return price;
-    }
-    
-    const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
-    
-    if (isNaN(numericPrice)) {
-      return 'Preço sob consulta';
-    }
-    
-    // Se o preço for menor que 1000, provavelmente é aluguel
-    if (numericPrice < 1000) {
-      return `R$ ${numericPrice.toLocaleString('pt-BR')}/mês`;
-    }
-    
-    return `R$ ${numericPrice.toLocaleString('pt-BR')}`;
-  };
 
   return (
     <div className="min-h-screen pt-32 pb-16 bg-dark">
@@ -200,7 +241,7 @@ const PropertyDetail = () => {
         )}
         
         {/* Image Gallery */}
-        {property && (
+        {property && property.images.length > 0 && (
           <div className="relative h-96 md:h-[500px] mb-8 rounded-xl overflow-hidden">
             <img
               src={property.images[currentImageIndex]}
@@ -214,47 +255,43 @@ const PropertyDetail = () => {
               </div>
             )}
             
-            <button 
-              onClick={() => {
-                setCurrentImageIndex(prevIndex => 
-                  prevIndex === 0 ? property.images.length - 1 : prevIndex - 1
-                );
-              }}
-              className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-2 rounded-full"
-              aria-label="Previous image"
-            >
-              <ChevronLeft className="h-6 w-6 text-white" />
-            </button>
-            
-            <button 
-              onClick={() => {
-                setCurrentImageIndex(prevIndex => 
-                  prevIndex === property.images.length - 1 ? 0 : prevIndex + 1
-                );
-              }}
-              className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-2 rounded-full"
-              aria-label="Next image"
-            >
-              <ChevronRight className="h-6 w-6 text-white" />
-            </button>
-            
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-              {property.images.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentImageIndex(index)}
-                  className={`w-2 h-2 rounded-full ${
-                    index === currentImageIndex ? 'bg-gold' : 'bg-white/50'
-                  }`}
-                  aria-label={`Go to image ${index + 1}`}
-                />
-              ))}
-            </div>
+            {property.images.length > 1 && (
+              <>
+                <button 
+                  onClick={prevImage}
+                  className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-2 rounded-full"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="h-6 w-6 text-white" />
+                </button>
+                
+                <button 
+                  onClick={nextImage}
+                  className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 p-2 rounded-full"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="h-6 w-6 text-white" />
+                </button>
+                
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                  {property.images.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`w-2 h-2 rounded-full ${
+                        index === currentImageIndex ? 'bg-gold' : 'bg-white/50'
+                      }`}
+                      aria-label={`Go to image ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
         
         {/* Property Thumbnails */}
-        {property && property.images.length > 0 && (
+        {property && property.images.length > 1 && (
           <div className="flex space-x-2 mb-8 overflow-x-auto pb-2">
             {property.images.map((image, index) => (
               <button
@@ -316,7 +353,6 @@ const PropertyDetail = () => {
             <div className="mb-8">
               <h2 className="text-white text-xl mb-4">Localização</h2>
               <div className="bg-gray-800 h-64 rounded-lg overflow-hidden">
-                {/* Em uma aplicação real, você integraria o Google Maps aqui */}
                 <div className="w-full h-full flex items-center justify-center bg-gray-700 text-gray-400">
                   <MapPin className="h-8 w-8 mr-2" />
                   <span>{property.location}</span>
@@ -360,7 +396,7 @@ const PropertyDetail = () => {
               </button>
               
               <div className="mt-6 text-center text-sm text-gray-500">
-                <p>Código do Imóvel: FI-{property.id.substring(0, 8)}</p>
+                <p>Código do Imóvel: {property.code}</p>
               </div>
             </div>
           </div>

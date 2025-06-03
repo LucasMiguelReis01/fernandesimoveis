@@ -37,7 +37,6 @@ const PropertyForm = () => {
         return;
       }
       
-      // Check if user is an admin
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
@@ -73,8 +72,21 @@ const PropertyForm = () => {
         toast.error('Não foi possível carregar os detalhes do imóvel.');
         navigate('/admin/properties');
       } else if (data) {
-        // Parse images from image_url (for backward compatibility)
-        const images = data.image_url ? [data.image_url] : [];
+        // Parse images from database
+        let images = [];
+        
+        if (data.images && Array.isArray(data.images)) {
+          images = data.images;
+        } else if (data.images && typeof data.images === 'string') {
+          try {
+            const parsed = JSON.parse(data.images);
+            images = Array.isArray(parsed) ? parsed : [data.images];
+          } catch (e) {
+            images = data.image_url ? [data.image_url] : [];
+          }
+        } else if (data.image_url) {
+          images = [data.image_url];
+        }
         
         setFormData({
           code: data.code || '',
@@ -107,11 +119,9 @@ const PropertyForm = () => {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else if (name === 'price' && value) {
-      // Limitar entrada a números para o preço
       const numericValue = value.replace(/[^0-9]/g, '');
       setFormData(prev => ({ ...prev, [name]: numericValue }));
     } else if (name === 'bedrooms' || name === 'area') {
-      // Converter para número
       setFormData(prev => ({ ...prev, [name]: value ? Number(value) : 0 }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
@@ -167,7 +177,8 @@ const PropertyForm = () => {
         location: formData.location.trim(),
         bedrooms: formData.bedrooms,
         area: formData.area,
-        image_url: formData.images[0], // Use first image as main image for backward compatibility
+        image_url: formData.images[0], // Use first image as main image
+        images: JSON.stringify(formData.images), // Store all images as JSON string
         property_type: formData.property_type,
         transaction_type: formData.transaction_type,
         featured: formData.featured,
