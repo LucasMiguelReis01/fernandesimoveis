@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from "@/integrations/supabase/client";
 import FilterBar from '@/components/properties/FilterBar';
 import PropertySorting from '@/components/properties/PropertySorting';
 import LoadingState from '@/components/properties/LoadingState';
@@ -9,12 +8,13 @@ import PropertiesVisualization from '@/components/PropertiesVisualization';
 import OptimizedPropertyCard from '@/components/OptimizedPropertyCard';
 import { filterProperties, sortProperties } from '@/utils/propertyFilters';
 import { PropertyType } from '@/components/PropertyCard';
+import { useProperties } from '@/hooks/useProperties';
 import { Zap, Grid } from 'lucide-react';
 
 const Properties = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [properties, setProperties] = useState<PropertyType[]>([]);
+  const { properties, isLoading, error } = useProperties();
   const [filters, setFilters] = useState({
     transactionType: 'todos',
     propertyType: 'todos',
@@ -23,8 +23,6 @@ const Properties = () => {
     code: ''
   });
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('recent');
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
 
@@ -40,46 +38,7 @@ const Properties = () => {
         code: locationState.code || prev.code
       }));
     }
-
-    const fetchProperties = async () => {
-      try {
-        setIsLoading(true);
-        
-        const { data, error } = await supabase
-          .from('properties')
-          .select('id, title, transaction_type, price, location, bedrooms, area, image_url, featured, sold, property_type, code')
-          .order('created_at', { ascending: false });
-          
-        if (error) {
-          setError('Não foi possível carregar os imóveis.');
-        } else {
-          const formattedData = data.map(item => ({
-            id: item.id,
-            title: item.title,
-            type: item.transaction_type,
-            transaction_type: item.transaction_type,
-            price: item.price,
-            location: item.location,
-            bedrooms: item.bedrooms,
-            area: item.area,
-            imageUrl: item.image_url,
-            image_url: item.image_url,
-            featured: item.featured,
-            sold: item.sold,
-            property_type: item.property_type,
-            code: item.code
-          }));
-          setProperties(formattedData);
-        }
-      } catch (err) {
-        setError('Ocorreu um erro inesperado.');
-      } finally {
-        setIsLoading(false);
-        setIsLoaded(true);
-      }
-    };
-
-    fetchProperties();
+    setIsLoaded(true);
   }, [location]);
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
