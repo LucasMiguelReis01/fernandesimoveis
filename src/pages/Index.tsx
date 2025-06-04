@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import HeroBanner from '@/components/HeroBanner';
-import PropertyCard, { PropertyType } from '@/components/PropertyCard';
+import OptimizedPropertyCard from '@/components/OptimizedPropertyCard';
 import { supabase } from "@/integrations/supabase/client";
+import { PropertyType } from '@/components/PropertyCard';
 
 const Index = () => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -14,18 +14,15 @@ const Index = () => {
   useEffect(() => {
     const fetchFeaturedProperties = async () => {
       try {
-        // Buscar imóveis destacados do Supabase
         const { data, error } = await supabase
           .from('properties')
-          .select('*')
+          .select('id, title, transaction_type, price, location, bedrooms, area, image_url, featured, sold, property_type')
           .eq('featured', true)
           .limit(3);
         
         if (error) {
-          console.error('Erro ao buscar imóveis destacados:', error);
           setError('Não foi possível carregar os imóveis destacados.');
         } else {
-          // Formatar os dados para o formato esperado pelo PropertyCard
           const formattedData = data.map(item => ({
             id: item.id,
             title: item.title,
@@ -44,7 +41,6 @@ const Index = () => {
           setFeaturedProperties(formattedData);
         }
       } catch (err) {
-        console.error('Erro inesperado:', err);
         setError('Ocorreu um erro inesperado.');
       } finally {
         setIsLoading(false);
@@ -85,7 +81,7 @@ const Index = () => {
           ) : featuredProperties.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {featuredProperties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
+                <OptimizedPropertyCard key={property.id} property={property} />
               ))}
             </div>
           ) : (

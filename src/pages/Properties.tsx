@@ -1,11 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import FilterBar from '@/components/properties/FilterBar';
 import PropertySorting from '@/components/properties/PropertySorting';
-import PropertyGrid from '@/components/properties/PropertyGrid';
 import LoadingState from '@/components/properties/LoadingState';
 import PropertiesVisualization from '@/components/PropertiesVisualization';
+import OptimizedPropertyCard from '@/components/OptimizedPropertyCard';
 import { filterProperties, sortProperties } from '@/utils/propertyFilters';
 import { PropertyType } from '@/components/PropertyCard';
 import { Zap, Grid } from 'lucide-react';
@@ -28,7 +29,6 @@ const Properties = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
 
   useEffect(() => {
-    // Aplicar filtros que possam ter sido passados no estado da localização
     const locationState = location.state as any;
     if (locationState) {
       setFilters(prev => ({
@@ -45,17 +45,14 @@ const Properties = () => {
       try {
         setIsLoading(true);
         
-        // Buscar propriedades do Supabase
         const { data, error } = await supabase
           .from('properties')
-          .select('*')
+          .select('id, title, transaction_type, price, location, bedrooms, area, image_url, featured, sold, property_type, code')
           .order('created_at', { ascending: false });
           
         if (error) {
-          console.error('Erro ao buscar propriedades:', error);
           setError('Não foi possível carregar os imóveis.');
         } else {
-          // Formatar os dados para o formato esperado pelo PropertyCard
           const formattedData = data.map(item => ({
             id: item.id,
             title: item.title,
@@ -70,13 +67,11 @@ const Properties = () => {
             featured: item.featured,
             sold: item.sold,
             property_type: item.property_type,
-            description: item.description,
             code: item.code
           }));
           setProperties(formattedData);
         }
       } catch (err) {
-        console.error('Erro inesperado:', err);
         setError('Ocorreu um erro inesperado.');
       } finally {
         setIsLoading(false);
@@ -105,7 +100,6 @@ const Properties = () => {
     navigate(`/property/${property.id}`);
   };
 
-  // Filtrar e ordenar propriedades
   const filteredProperties = filterProperties(properties, filters);
   const sortedProperties = sortProperties(filteredProperties, sortBy);
 
@@ -119,7 +113,6 @@ const Properties = () => {
           
           <FilterBar filters={filters} setFilters={setFilters} />
           
-          {/* View Mode Toggle */}
           <div className="flex justify-center mt-6">
             <div className="bg-dark-light border border-gold/20 rounded-lg p-1 flex">
               <button
@@ -149,7 +142,6 @@ const Properties = () => {
         </div>
       </div>
       
-      {/* Properties Content */}
       <section className="py-16 bg-dark">
         <div className="container mx-auto px-4 md:px-6">
           {isLoading ? (
@@ -163,10 +155,25 @@ const Properties = () => {
               />
               
               {viewMode === 'grid' ? (
-                <PropertyGrid 
-                  properties={sortedProperties} 
-                  onClearFilters={handleClearFilters} 
-                />
+                <div className="mt-8">
+                  {sortedProperties.length === 0 ? (
+                    <div className="text-center py-12">
+                      <p className="text-gray-400 mb-4">Nenhum imóvel encontrado com os filtros aplicados.</p>
+                      <button
+                        onClick={handleClearFilters}
+                        className="gold-button px-6 py-3 rounded-md"
+                      >
+                        Limpar Filtros
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {sortedProperties.map((property) => (
+                        <OptimizedPropertyCard key={property.id} property={property} />
+                      ))}
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className="mt-8">
                   <PropertiesVisualization 
