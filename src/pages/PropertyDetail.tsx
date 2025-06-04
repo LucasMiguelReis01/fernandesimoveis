@@ -4,7 +4,7 @@ import { MapPin, Calendar, Building, Bed, ChevronLeft, ChevronRight, Phone, Uplo
 import { PropertyType } from '@/components/PropertyCard';
 import { supabase } from "@/integrations/supabase/client";
 import ImageGalleryManager from '@/components/ImageGalleryManager';
-import GoogleMap from '@/components/GoogleMap';
+import LocationCard from '@/components/LocationCard';
 
 const PropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -360,10 +360,9 @@ const PropertyDetail = () => {
             
             <div className="mb-8">
               <h2 className="text-white text-xl mb-4">Localização</h2>
-              <GoogleMap 
+              <LocationCard 
                 location={property.location}
-                height="h-64"
-                zoom={16}
+                height="h-80"
                 className="border border-gold/20"
               />
             </div>

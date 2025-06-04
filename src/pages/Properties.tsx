@@ -5,10 +5,10 @@ import FilterBar from '@/components/properties/FilterBar';
 import PropertySorting from '@/components/properties/PropertySorting';
 import PropertyGrid from '@/components/properties/PropertyGrid';
 import LoadingState from '@/components/properties/LoadingState';
-import PropertiesMap from '@/components/PropertiesMap';
+import PropertiesVisualization from '@/components/PropertiesVisualization';
 import { filterProperties, sortProperties } from '@/utils/propertyFilters';
 import { PropertyType } from '@/components/PropertyCard';
-import { Map, Grid } from 'lucide-react';
+import { Zap, Grid } from 'lucide-react';
 
 const Properties = () => {
   const location = useLocation();
@@ -141,8 +141,8 @@ const Properties = () => {
                     : 'text-gray-400 hover:text-white'
                 }`}
               >
-                <Map className="h-4 w-4" />
-                Mapa
+                <Zap className="h-4 w-4" />
+                Interativo
               </button>
             </div>
           </div>
@@ -169,7 +169,7 @@ const Properties = () => {
                 />
               ) : (
                 <div className="mt-8">
-                  <PropertiesMap 
+                  <PropertiesVisualization 
                     properties={sortedProperties}
                     height="h-[600px]"
                     onPropertySelect={handlePropertySelect}
