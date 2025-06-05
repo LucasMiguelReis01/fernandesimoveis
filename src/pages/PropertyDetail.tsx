@@ -60,10 +60,27 @@ const PropertyDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <div className="mb-6">
-              <span className="text-gold text-sm font-medium bg-gold/10 px-3 py-1 rounded-md">
-                {property.transaction_type || property.type}
-              </span>
-              <h1 className="text-white text-3xl md:text-4xl mt-4 mb-2">{property.title}</h1>
+              <div className="flex items-center gap-3 mb-4">
+                <span className={`text-sm font-medium px-3 py-1 rounded-md ${
+                  property.sold 
+                    ? 'text-red-400 bg-red-900/20 border border-red-500/30' 
+                    : 'text-gold bg-gold/10'
+                }`}>
+                  {property.sold ? 'VENDIDO' : (property.transaction_type || property.type)}
+                </span>
+                {property.sold && (
+                  <span className="text-red-400 text-sm font-medium animate-pulse">
+                    • Imóvel não disponível
+                  </span>
+                )}
+              </div>
+              
+              <h1 className={`text-3xl md:text-4xl mt-4 mb-2 ${
+                property.sold ? 'text-gray-400' : 'text-white'
+              }`}>
+                {property.title}
+              </h1>
+              
               <div className="flex items-center">
                 <MapPin className="h-4 w-4 text-gold mr-1" />
                 <span className="text-gray-300">{property.location}</span>
@@ -71,28 +88,50 @@ const PropertyDetail = () => {
             </div>
             
             <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="p-4 glass-dark rounded-lg text-center">
+              <div className={`p-4 rounded-lg text-center ${
+                property.sold ? 'bg-gray-800/50' : 'glass-dark'
+              }`}>
                 <Building className="h-6 w-6 text-gold mx-auto mb-2" />
                 <span className="block text-sm text-gray-400">Área</span>
-                <span className="block text-white font-medium">{property.area} m²</span>
+                <span className={`block font-medium ${
+                  property.sold ? 'text-gray-500' : 'text-white'
+                }`}>
+                  {property.area} m²
+                </span>
               </div>
               
-              <div className="p-4 glass-dark rounded-lg text-center">
+              <div className={`p-4 rounded-lg text-center ${
+                property.sold ? 'bg-gray-800/50' : 'glass-dark'
+              }`}>
                 <Bed className="h-6 w-6 text-gold mx-auto mb-2" />
                 <span className="block text-sm text-gray-400">Quartos</span>
-                <span className="block text-white font-medium">{property.bedrooms}</span>
+                <span className={`block font-medium ${
+                  property.sold ? 'text-gray-500' : 'text-white'
+                }`}>
+                  {property.bedrooms}
+                </span>
               </div>
               
-              <div className="p-4 glass-dark rounded-lg text-center">
+              <div className={`p-4 rounded-lg text-center ${
+                property.sold ? 'bg-gray-800/50' : 'glass-dark'
+              }`}>
                 <Calendar className="h-6 w-6 text-gold mx-auto mb-2" />
                 <span className="block text-sm text-gray-400">Tipo</span>
-                <span className="block text-white font-medium">{property.property_type}</span>
+                <span className={`block font-medium ${
+                  property.sold ? 'text-gray-500' : 'text-white'
+                }`}>
+                  {property.property_type}
+                </span>
               </div>
             </div>
             
             <div className="mb-8">
               <h2 className="text-white text-xl mb-4">Descrição</h2>
-              <p className="text-gray-300 leading-relaxed">{property.description}</p>
+              <p className={`leading-relaxed ${
+                property.sold ? 'text-gray-500' : 'text-gray-300'
+              }`}>
+                {property.description}
+              </p>
             </div>
             
             <div className="mb-8">
@@ -110,6 +149,7 @@ const PropertyDetail = () => {
               price={property.price}
               propertyTitle={property.title}
               propertyCode={property.code}
+              sold={property.sold}
             />
           </div>
         </div>

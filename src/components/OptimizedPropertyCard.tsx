@@ -14,26 +14,46 @@ const OptimizedPropertyCard = memo(({ property }: OptimizedPropertyCardProps) =>
 
   return (
     <Link to={`/property/${property.id}`} className="block group">
-      <div className="glass-dark rounded-xl overflow-hidden border border-gold/20 hover:border-gold/40 transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-xl">
+      <div className={`glass-dark rounded-xl overflow-hidden border transition-all duration-300 ${
+        property.sold 
+          ? 'border-red-500/30 opacity-75' 
+          : 'border-gold/20 hover:border-gold/40 group-hover:scale-[1.02] group-hover:shadow-xl'
+      }`}>
         <div className="relative h-64 overflow-hidden">
           <img
             src={imageUrl}
             alt={property.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className={`w-full h-full object-cover transition-transform duration-500 ${
+              property.sold ? 'grayscale' : 'group-hover:scale-110'
+            }`}
             loading="lazy"
           />
+          
           {property.sold && (
-            <div className="absolute top-4 left-4 bg-red-600 text-white py-1 px-3 rounded-md text-sm font-medium">
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+              <div className="bg-red-600 px-8 py-4 rounded-lg transform rotate-12 shadow-lg">
+                <span className="text-white text-xl font-bold">VENDIDO</span>
+              </div>
+            </div>
+          )}
+          
+          {property.sold && (
+            <div className="absolute top-4 left-4 bg-red-600 text-white py-1 px-3 rounded-md text-sm font-medium animate-pulse">
               VENDIDO
             </div>
           )}
-          <div className="absolute top-4 right-4 bg-gold text-dark py-1 px-3 rounded-md text-sm font-bold">
-            {property.transaction_type || property.type}
-          </div>
+          
+          {!property.sold && (
+            <div className="absolute top-4 right-4 bg-gold text-dark py-1 px-3 rounded-md text-sm font-bold">
+              {property.transaction_type || property.type}
+            </div>
+          )}
         </div>
         
         <div className="p-6">
-          <h3 className="text-white text-xl font-semibold mb-3 line-clamp-2 leading-tight">
+          <h3 className={`text-xl font-semibold mb-3 line-clamp-2 leading-tight ${
+            property.sold ? 'text-gray-400' : 'text-white'
+          }`}>
             {property.title}
           </h3>
           
@@ -43,7 +63,9 @@ const OptimizedPropertyCard = memo(({ property }: OptimizedPropertyCardProps) =>
           </div>
           
           <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center space-x-4 text-sm text-gray-300">
+            <div className={`flex items-center space-x-4 text-sm ${
+              property.sold ? 'text-gray-500' : 'text-gray-300'
+            }`}>
               <div className="flex items-center">
                 <Bed className="h-4 w-4 text-gold mr-1" />
                 <span>{formatBedrooms(property.bedrooms)}</span>
@@ -55,8 +77,10 @@ const OptimizedPropertyCard = memo(({ property }: OptimizedPropertyCardProps) =>
             </div>
           </div>
           
-          <div className="text-gold text-2xl font-bold">
-            {formatPrice(property.price)}
+          <div className={`text-2xl font-bold ${
+            property.sold ? 'text-gray-500' : 'text-gold'
+          }`}>
+            {property.sold ? 'VENDIDO' : formatPrice(property.price)}
           </div>
         </div>
       </div>
